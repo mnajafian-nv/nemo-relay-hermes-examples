@@ -9,17 +9,13 @@ deterministic ToolPerf fixture?
 ### Current Hermes smoke check
 
 The current Hermes checkout passed the deterministic smoke task with
-`nvidia/qwen/qwen3.5-9b` on NVIDIA Inference. Hermes ran `python3 sample.py`,
-returned `VALUE=42`, and Relay wrote both ATOF and ATIF artifacts.
+`nvidia/nvidia/nemotron-3.5-lightning` on NVIDIA Inference. Hermes ran
+`python3 sample.py`, returned `VALUE=42`, and Relay wrote both ATOF and ATIF
+artifacts.
 
-The prior Lightning trial was not selected for the tutorial: it continued to
-request additional terminal calls after receiving the correct result and reached
-the turn limit. Relay still recorded those calls, but that is not a usable
-quickstart contract.
-
-**Decision:** use the Qwen configuration for the trace-capture walkthrough.
-This passing smoke result validates setup only. It does not support a performance
-claim.
+**Decision:** use this Nemotron configuration for the trace-capture walkthrough.
+This passing smoke result validates setup only. It does not support a
+performance claim.
 
 ### Historical ToolPerf environment
 

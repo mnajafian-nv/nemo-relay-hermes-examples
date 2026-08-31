@@ -19,7 +19,7 @@ The optional evaluation path compares a baseline and a trace-motivated change on
 - Python 3.11 or later
 - Hermes Agent `0.20.5`
 - `nemo-relay` `0.7.2` in the Python environment Hermes uses
-- An NVIDIA Inference API key with access to `nvidia/qwen/qwen3.5-9b`
+- An NVIDIA Inference API key with access to `nvidia/nvidia/nemotron-3.5-lightning`
 
 The supported smoke contract is pinned in
 [config/smoke.env](config/smoke.env). `scripts/check_environment.sh` verifies
@@ -62,9 +62,10 @@ The included Relay configuration disables full payload capture. Do not commit AP
 
 ## Status
 
-The Qwen smoke configuration has passed the end-to-end contract: Hermes
-executes the terminal call, returns `VALUE=42`, and Relay writes ATOF and ATIF
-artifacts. A focused exploratory trial also reduced average LLM and tool calls,
-but did not establish a latency or cost improvement. This repository does not
-make a performance claim until a reproducible baseline/candidate comparison
-supports one.
+The NVIDIA Nemotron smoke configuration has passed the end-to-end contract:
+Hermes executes the terminal call, returns `VALUE=42`, and Relay writes ATOF
+and ATIF artifacts. An earlier Qwen run remains an internal troubleshooting
+option only; it is not the tutorial's primary model. A focused exploratory
+trial also reduced average LLM and tool calls, but did not establish a latency
+or cost improvement. This repository does not make a performance claim until a
+reproducible baseline/candidate comparison supports one.
