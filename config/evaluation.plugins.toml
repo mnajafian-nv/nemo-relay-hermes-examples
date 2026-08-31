@@ -1,0 +1,24 @@
+version = 1
+
+[[components]]
+kind = "observability"
+enabled = true
+
+[components.config]
+version = 3
+enable_full_payloads = false
+
+[components.config.atof]
+enabled = true
+
+[[components.config.atof.sinks]]
+type = "file"
+output_directory = "__RELAY_OUTPUT_ROOT__/atof"
+filename = "run.jsonl"
+mode = "overwrite"
+
+[components.config.atif]
+enabled = true
+agent_name = "Hermes Agent"
+output_directory = "__RELAY_OUTPUT_ROOT__/atif"
+filename_template = "trajectory-{session_id}.json"

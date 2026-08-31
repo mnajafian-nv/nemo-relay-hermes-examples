@@ -1,0 +1,19 @@
+# Historical ToolPerf discovery record. This is not the publication manifest.
+# See results.md for completed experiments and publication decisions.
+model: nvidia/nvidia/nemotron-3.5-lightning
+provider_base_url: https://inference-api.nvidia.com/v1
+task_suite: hermes-toolperf-evals/abeval
+discovery_tasks:
+  - err_big_output
+  - err_python_env
+validation_tasks:
+  - err_big_output
+attempts_per_task: 10
+timeout_minutes: 10
+max_turns: 30
+baseline_revision: 5b4d20b524
+candidate_revision: f01c193be4
+relay_version: 0.6.0
+hermes_version: 0.19.1
+evaluation_date: 2026-08-31
+publication_status: inconclusive_no_performance_claim

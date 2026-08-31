@@ -1,0 +1,1 @@
+print("VALUE=42")
