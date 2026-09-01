@@ -21,7 +21,7 @@ small so the result is unambiguous and the trace is easy to inspect.
 Before you start, complete the following prerequisites:
 
 1. Use macOS or Linux with Hermes Agent `0.20.5` or later.
-2. Use Python 3.11 or later in the Python environment behind `hermes`.
+2. Use Python 3.11 through 3.13 in the Python environment behind `hermes`.
 3. Obtain an NVIDIA Inference API key with access to
    `nvidia/nvidia/nemotron-3.5-lightning`.
 4. Install NeMo Relay `0.7.2` in Hermes's Python environment:
