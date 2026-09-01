@@ -1,49 +1,31 @@
-# Capture a Hermes Trace with NeMo Relay
+# Trace a Hermes Task with NeMo Relay
 
-**Goal:** Run a tool-using Hermes task through NVIDIA Inference, verify the
-result, and inspect the NeMo Relay trace produced on your machine.
+Run a Hermes tool-use task through NVIDIA Inference, verify its deterministic
+success condition, and inspect the NeMo Relay artifacts written to your machine.
 
-> **Note:** This tutorial shows how to capture evidence about an agent run. It
-> does not benchmark or claim an improvement to agent quality, latency, or cost.
-
-## In This Tutorial, You Will
-
-1. Configure a local Hermes and NeMo Relay environment.
-2. Run a deterministic task with Relay enabled.
-3. Verify the task result and Relay artifacts.
-4. Read the trace summary to identify model calls, tool calls, and tool errors.
-
-The task runs `python3 sample.py`, which prints `VALUE=42`. It is deliberately
-small so the result is unambiguous and the trace is easy to inspect.
+The task asks Hermes to run `python3 sample.py`. The script prints `VALUE=42`,
+so the task has one exact success condition and a trace that is small enough to
+inspect.
 
 ## Prerequisites
 
-Before you start, complete the following prerequisites:
+Before you start, confirm the following:
 
-1. Use macOS or Linux with Hermes Agent `0.20.5` or later.
-2. Use Python 3.11 through 3.13 in the Python environment behind `hermes`.
-3. Obtain an NVIDIA Inference API key with access to
-   `nvidia/nvidia/nemotron-3.5-lightning`.
-4. Install NeMo Relay `0.7.2` in Hermes's Python environment:
+- macOS or Linux
+- Hermes Agent `0.20.5` or later
+- Python 3.11 through 3.13 in the Python environment behind `hermes`
+- An NVIDIA Inference API key with access to
+  `nvidia/nvidia/nemotron-3.5-lightning`
+- NeMo Relay `0.7.2` in Hermes's Python environment:
 
-   ```bash
-   HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
-   "$HERMES_PYTHON" -m pip install "nemo-relay==0.7.2"
-   ```
+  ```bash
+  HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
+  "$HERMES_PYTHON" -m pip install "nemo-relay==0.7.2"
+  ```
 
-Install Hermes with the [official installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). The tested model, Relay version, and execution limits are in
-[config/smoke.env](config/smoke.env).
+Install Hermes with the [official installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). The model, Relay version, and execution limits are in [config/smoke.env](config/smoke.env).
 
-Hermes owns the Relay runtime in this release. Do not enable the removed
-`observability/nemo_relay` Hermes plugin.
-
-## Tutorial Steps
-
-Work through each step in order. The runner creates an isolated Hermes home
-for every execution and removes it when the run finishes, so it does not modify
-your normal Hermes configuration or retain Hermes runtime state with the trace.
-
-### Run the Task with Relay Enabled
+## Run the Tutorial
 
 1. Clone the repository and set your NVIDIA Inference API key:
 
@@ -63,18 +45,17 @@ your normal Hermes configuration or retain Hermes runtime state with the trace.
    ./scripts/run_tutorial.sh
    ```
 
-   The runner renders a Relay `plugins.toml`, starts Hermes with that file,
-   runs the sample task, verifies the final answer, and writes ATOF and ATIF
-   artifacts under `artifacts/runs/` in the cloned repository by default. The
-   retained directory contains only the task output and Relay artifacts, not
-   Hermes authentication or runtime state. It is ignored by Git. Set
-   `RUNTIME_ROOT` to store artifacts elsewhere.
+   The runner creates an isolated Hermes home, renders a Relay `plugins.toml`,
+   runs the task, and writes ATOF and ATIF artifacts under `artifacts/runs/` in
+   the cloned repository. The retained directory contains task output and Relay
+   artifacts, not Hermes authentication or runtime state. Set `RUNTIME_ROOT`
+   to store artifacts in a different user-owned location.
 
-**✅ Success Check:** The command prints `Task verified: VALUE=42`, reports a
-nonzero number of completed LLM scopes and tool calls, reports `tool errors: 0`,
-and ends with the local `Artifacts:` directory.
+**Expected result:** The command prints `Task verified: VALUE=42`, a trace
+summary with at least one completed LLM scope and tool call, `tool errors: 0`,
+and the artifact directory.
 
-### Inspect the Trace
+## Inspect the Relay Artifacts
 
 The runner prints a summary automatically. Run the summarizer again by using
 the artifact directory from the previous step:
@@ -85,28 +66,22 @@ HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
   <artifact-directory>/atof/run.jsonl
 ```
 
-| Question | Trace evidence |
+| Question | Where to look |
 | --- | --- |
 | Did the task finish? | `VALUE=42` and a completed ATIF trajectory. |
-| Did Hermes call a model? | `completed llm scopes` is nonzero. |
-| Did Hermes call a tool? | `tool calls` is nonzero. |
-| Did a tool report failure? | Review `tool errors` and the raw ATOF events. |
+| Which model and tool calls ran? | The printed summary and ATOF event stream. |
+| Did a tool fail? | `tool errors` and the raw ATOF events. |
 
-ATOF is Relay's event stream. ATIF is the completed agent trajectory assembled
-from that stream.
+ATOF is Relay's ordered event stream. ATIF is the agent trajectory Relay
+derives from lifecycle events. Review artifacts before sharing them. They can
+contain prompts, tool arguments and results, file paths, model output, and
+other application data.
 
-**✅ Success Check:** You can identify the completed LLM scopes, terminal tool
-calls, and tool-error count without reading each JSONL event manually.
-
-### Apply the Pattern to Your Task
+## Apply the Pattern to Your Task
 
 Replace [sample-project/sample.py](sample-project/sample.py) with a safe task
-of your own. Retain a mechanical success check and run Relay in every arm of a
-comparison. Use the trace to identify behavior worth investigating before you
-change a prompt, tool setup, model setting, or Hermes behavior.
-
-Relay artifacts can contain prompts, tool output, file paths, and runtime
-identifiers. Keep them local and review them before sharing.
+of your own. Keep a mechanical success check, capture Relay artifacts for each
+run, and compare equivalent runs before and after a focused agent change.
 
 ## Troubleshooting
 
@@ -117,20 +92,9 @@ the model in [config/smoke.env](config/smoke.env).
 disables custom Relay configuration. The runner prints the artifact directory
 for each attempt.
 
-**Hermes reaches its turn limit:** The runner marks this as a failed task. Read
-the generated ATOF stream to determine whether the model, a tool, or the task
-prompt caused the extra work.
-
-## What You Learned
-
-In this tutorial, you have:
-
-- Enabled NeMo Relay for a local Hermes run without editing your normal Hermes
-  profile.
-- Verified a tool-use task and captured its ATOF and ATIF artifacts.
-- Used Relay's summary to examine the model and tool activity behind an agent
-  result.
-- Established a trace-backed starting point for a controlled agent evaluation.
+**Hermes reaches its turn limit:** The runner marks the task as failed. Use the
+ATOF stream to identify whether the model, tool, or task prompt caused the
+extra work.
 
 <details>
 <summary>Run the repository checks</summary>
