@@ -17,9 +17,10 @@ task result, and inspect the NeMo Relay artifacts produced by the run.
 Before you start, complete the following prerequisites:
 
 1. Use macOS or Linux.
-2. Install Hermes Agent `0.21.0` by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). It bundles NeMo Relay `0.7.2` for this tutorial.
-3. Have an [NVIDIA API key](https://build.nvidia.com/nvidia/llama-3_3-nemotron-super-49b-v1_5) authorized to use `llama-3.3-nemotron-super-49b-v1.5`.
-4. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
+2. Install [Git](https://git-scm.com/downloads).
+3. Install Hermes Agent `0.21.0` by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). It bundles NeMo Relay `0.7.2` for this tutorial.
+4. Have an [NVIDIA API key](https://build.nvidia.com/nvidia/llama-3_3-nemotron-super-49b-v1_5) authorized to use `llama-3.3-nemotron-super-49b-v1.5`.
+5. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
 
 **Success check:** `docker version` returns both client and server information.
 
@@ -63,13 +64,19 @@ environment. The runner verifies both versions before it starts the task.
 
 ### Configure NVIDIA Inference Access
 
-Copy the environment file and add your API key:
+Copy the environment file:
 
 ```bash
 cp keys.env.example keys.env
 ```
 
-Set `NVIDIA_API_KEY` in `keys.env`. The file is Git-ignored, and using it keeps the key out of shell history.
+Open `keys.env` and add your API key:
+
+```text
+NVIDIA_API_KEY=<your-nvidia-api-key>
+```
+
+The file is Git-ignored, and using it keeps the key out of shell history.
 
 ### Build the Tutorial Image
 
@@ -101,8 +108,9 @@ tutorial container. The script prints `VALUE=42`.
 
 ## Inspect the Artifacts
 
-The runner stores task output and two complementary Relay artifacts in the
-artifact directory. It does not retain Hermes authentication or runtime state.
+Generated artifacts contain traces and task output, not your NVIDIA API key or
+temporary Hermes profile. The runner removes the temporary profile when it
+exits. Your `keys.env` file stays local and is ignored by Git.
 
 Before running the tutorial, you can inspect the paired [example ATOF trace](examples/terminal-task.atof.jsonl)
 and [example ATIF trajectory](examples/terminal-task.atif.json). The
