@@ -90,6 +90,11 @@ runs a task that asks Hermes to execute `python3 sample.py`. The script prints
 The runner stores task output and two complementary Relay artifacts in the
 artifact directory. It does not retain Hermes authentication or runtime state.
 
+Before running the tutorial, you can inspect the paired [example ATOF trace](examples/terminal-task.atof.jsonl)
+and [example ATIF trajectory](examples/terminal-task.atif.json). The
+[example walkthrough](examples/README.md) shows how the same terminal task is
+represented in each format.
+
 - [ATOF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atof)
   is the canonical raw JSONL event stream. Use it to diagnose a specific run
   and inspect exact LLM, tool, and lifecycle events.

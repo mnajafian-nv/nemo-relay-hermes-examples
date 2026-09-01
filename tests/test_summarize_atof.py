@@ -5,12 +5,29 @@ import unittest
 from pathlib import Path
 
 SCRIPTS = Path(__file__).parents[1] / "scripts"
+EXAMPLES = Path(__file__).parents[1] / "examples"
 sys.path.insert(0, str(SCRIPTS))
 
 import summarize_atof
 
 
 class SummarizeAtofTests(unittest.TestCase):
+    def test_example_trace_summarizes_the_terminal_task(self) -> None:
+        summary = summarize_atof.summarize(
+            summarize_atof.load_events(EXAMPLES / "terminal-task.atof.jsonl")
+        )
+
+        self.assertEqual(
+            summary,
+            {
+                "events": 4,
+                "completed_llm_scopes": 1,
+                "tool_calls": 1,
+                "tool_errors": 0,
+                "correlated_events": 4,
+            },
+        )
+
     def test_summarize_counts_completed_scopes_and_tools(self) -> None:
         events = [
             {"kind": "scope", "category": "llm", "scope_category": "end", "uuid": "llm"},
