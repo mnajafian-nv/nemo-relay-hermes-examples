@@ -77,11 +77,18 @@ derives from lifecycle events. Review artifacts before sharing them. They can
 contain prompts, tool arguments and results, file paths, model output, and
 other application data.
 
-## Apply the Pattern to Your Task
+## From Trace to Experiment
 
-Replace [sample-project/sample.py](sample-project/sample.py) with a safe task
-of your own. Keep a mechanical success check, capture Relay artifacts for each
-run, and compare equivalent runs before and after a focused agent change.
+Use the same workflow when you evaluate a focused agent change:
+
+1. Replace [sample-project/sample.py](sample-project/sample.py) with a safe
+   task that has a mechanical success check.
+2. Capture several baseline runs with the same model, task fixture, execution
+   limits, and verifier.
+3. Use the traces to identify one repeated behavior, such as a retry, repeated
+   file read, or tool error. Change only the component that owns that behavior.
+4. Run the same task and verifier again. Compare task completion first, then
+   use model calls, tool calls, elapsed time, and errors to explain the result.
 
 ## Troubleshooting
 
