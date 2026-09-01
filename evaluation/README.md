@@ -28,7 +28,9 @@ python3 evaluation/run_output_recovery_case.py --help
 The runner writes traces and result artifacts under `artifacts/` in the cloned
 repository by default. This directory is ignored by Git. Keep those artifacts
 local because they can contain prompts, tool output, paths, and runtime
-identifiers.
+identifiers. The ToolPerf runner uses an ephemeral Hermes home by default so
+authentication state is not retained with the artifacts. Set `EVALUATION_HOME`
+only when you need to supply a separate managed Hermes home.
 
 ## Evidence standard for a future comparison
 

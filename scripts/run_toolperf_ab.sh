@@ -14,7 +14,20 @@ model="${MODEL:-nvidia/nvidia/nemotron-3.5-lightning}"
 task="${TASK:-err_big_output}"
 repetitions="${REPETITIONS:-3}"
 evaluation_root="${EVALUATION_ROOT:-$repo_root/artifacts/toolperf/run}"
+evaluation_home="${EVALUATION_HOME:-}"
 python="${PYTHON:-$baseline_tree/.venv/bin/python}"
+
+if [[ -z "$evaluation_home" ]]; then
+  evaluation_home="$(mktemp -d "${TMPDIR:-/private/tmp}/nemo-relay-toolperf.XXXXXX")"
+
+  cleanup_evaluation_home() {
+    rm -rf "$evaluation_home"
+  }
+
+  trap cleanup_evaluation_home EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM HUP
+fi
 
 if [[ ! "$repetitions" =~ ^[1-9][0-9]*$ ]]; then
   echo "REPETITIONS must be a positive integer, found: $repetitions" >&2
@@ -59,7 +72,7 @@ fi
 
 export NVIDIA_BASE_URL="${NVIDIA_BASE_URL:-https://inference-api.nvidia.com/v1}"
 export ABEVAL_ROOT="$evaluation_root"
-export ABEVAL_HOME="$evaluation_root/home"
+export ABEVAL_HOME="$evaluation_home"
 
 mkdir -p "$ABEVAL_ROOT"
 
