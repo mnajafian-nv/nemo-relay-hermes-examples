@@ -7,9 +7,13 @@ run_root="$runtime_root/runs/$(date -u +%Y%m%dT%H%M%SZ)-$$"
 hermes_home="$(mktemp -d "${TMPDIR:-/tmp}/nemo-relay-hermes-tutorial.XXXXXX")"
 plugins_path="$hermes_home/plugins.toml"
 trace_path="$run_root/atof/run.jsonl"
+run_succeeded=false
 
 cleanup_hermes_home() {
   rm -rf -- "$hermes_home"
+  if [[ "$run_succeeded" != true && -d "$run_root" ]]; then
+    printf '\nArtifacts: %s\n' "$run_root" >&2
+  fi
 }
 
 trap cleanup_hermes_home EXIT
@@ -64,10 +68,11 @@ grep -qxF "$SMOKE_EXPECTED_OUTPUT" "$output_path"
 test -s "$trace_path"
 find "$run_root/atif" -type f -name 'trajectory-*.json' -size +0c -print -quit | grep -q .
 
-printf '\nTask verified: %s\n' "$SMOKE_EXPECTED_OUTPUT"
 printf 'Trace summary:\n'
 "$hermes_python" "$repo_root/scripts/summarize_atof.py" \
   "$trace_path" \
   --require-completed-llm-scope \
   --require-tool-call
+run_succeeded=true
+printf '\nTask verified: %s\n' "$SMOKE_EXPECTED_OUTPUT"
 printf '\nArtifacts: %s\n' "$run_root"
