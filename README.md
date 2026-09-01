@@ -1,8 +1,8 @@
 # Hermes and NeMo Relay examples
 
-This is a private working lab. Promote only the validated tutorial subset to the
-shared blog repository after the model, Hermes release, and publication claim
-are agreed.
+This is a working lab. Promote only the validated tutorial subset to the shared
+blog repository after the model, Hermes release, and publication claim are
+agreed.
 
 This repository accompanies an upcoming tutorial that shows how to run a Hermes coding-agent task with a model hosted on NVIDIA Inference and NeMo Relay, inspect the resulting trace, and use that evidence to evaluate a focused harness change.
 
@@ -48,6 +48,23 @@ the installed Hermes and NeMo Relay versions before the run starts.
 
 The script runs Hermes through NVIDIA Inference's OpenAI-compatible endpoint, `https://inference-api.nvidia.com/v1`, in an isolated local home beneath `/tmp/nemo-relay-hermes-examples`. A successful run prints `VALUE=42` and produces a Hermes session log plus Relay ATOF and ATIF outputs.
 
+## Trace-validated recovery case
+
+The included focused case study evaluates a Hermes terminal-output recovery
+change. The fixture deletes its own source when it starts, so a successful run
+must recover the answer from terminal output rather than inspect the task
+source. Relay verifies that behavior from the trace: one terminal execution,
+then retrieval from the candidate's spill artifact.
+
+Five alternating baseline/candidate pairs with
+`nvidia/nvidia/nemotron-3.5-lightning` produced 0/5 trace-valid recoveries for
+the baseline and 5/5 for the candidate. Mean wall time was 88 seconds for the
+baseline and 13 seconds for the candidate. This is a focused correctness and
+latency result, not a general agent benchmark or a cost claim. See
+[evaluation/README.md](evaluation/README.md) to reproduce the case and
+[evaluation/results.md](evaluation/results.md) for the complete protocol and
+result ledger.
+
 ## Evaluation method
 
 The evaluation plan and result format are documented in
@@ -64,8 +81,7 @@ The included Relay configuration disables full payload capture. Do not commit AP
 
 The NVIDIA Nemotron smoke configuration has passed the end-to-end contract:
 Hermes executes the terminal call, returns `VALUE=42`, and Relay writes ATOF
-and ATIF artifacts. An earlier Qwen run remains an internal troubleshooting
-option only; it is not the tutorial's primary model. A focused exploratory
-trial also reduced average LLM and tool calls, but did not establish a latency
-or cost improvement. This repository does not make a performance claim until a
-reproducible baseline/candidate comparison supports one.
+and ATIF artifacts. The trace-validated output-recovery case has also passed
+its five-pair protocol. Earlier exploratory cases are retained in the result
+ledger as rejected evidence so readers can see why the selected case has a
+stronger verifier.

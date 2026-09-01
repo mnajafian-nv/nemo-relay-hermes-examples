@@ -98,15 +98,71 @@ reduce repeated agent work on `err_big_output`?
 | Baseline | 100% | 6.0 | 2.6 | 0.0 | 0.0 | 19s |
 | Candidate | 100% | 5.2 | 2.4 | 0.0 | 0.0 | 29s |
 
-**Observation:** the candidate completed every run and reduced the observed LLM
-and tool-call averages. It did not establish a latency improvement: one
-81-second candidate run raises the five-run mean, and the benchmark executes
-each arm in a batch rather than interleaving pairs.
+**Decision:** reject this as decision evidence. The fixture places the expected
+token directly in readable Python source, so the verifier does not require the
+agent to recover it from truncated terminal output. The benchmark also ran each
+arm as a batch. The observed call-count difference is therefore not evidence
+that the output-retrieval candidate improved the intended behavior.
 
-**Decision:** this is trace-backed evidence that the candidate can reduce agent
-activity on this fixture. It is not a publishable faster or lower-cost claim.
-Any follow-up needs paired, interleaved repetitions and explicit token-cost
-measurement before using this result outside the methodology section.
+## 2026-08-31: unconstrained output-retrieval check
+
+**Question:** does the upstream output-retrieval candidate improve a traced,
+alternating comparison on `err_big_output` with the NVIDIA-hosted Nemotron
+configuration?
+
+**Environment:**
+
+- Model: `nvidia/nvidia/nemotron-3.5-lightning`
+- Provider endpoint: `https://inference-api.nvidia.com/v1`
+- Harness: ToolPerf `abeval`, `err_big_output`, five alternating pairs
+- Baseline: `1c6d1a23c081014ce70595396c4becc1112426b8`
+- Candidate: `80631c4aeaa34e4c0f3aca987992846593c333b1`
+- Relay: ATOF enabled in the same isolated Hermes home for both arms
+
+| Arm | Verifier pass rate | Mean LLM calls | Mean tool calls | Mean result bytes | Mean wall time |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Baseline | 100% | 3.0 | 2.0 | 10 KB | 12s |
+| Candidate | 100% | 3.4 | 2.4 | 31 KB | 14s |
+
+**Trace check:** all ten runs wrote ATOF artifacts. The candidate emitted
+spill-file metadata when its terminal output overflowed, so the intended code
+path was exercised.
+
+**Decision:** reject this fixture as the blog optimization case. Both arms
+solve it, and the candidate adds work. More importantly, `noisy_build.py`
+contains the token in readable source, so a model can answer without recovering
+the omitted terminal output. The result is useful for validating trace capture
+and rejecting a weak benchmark, not for claiming an agent improvement.
+
+## 2026-08-31: trace-validated output-recovery case
+
+**Question:** can the output-retrieval candidate recover a token that exists
+only in oversized terminal output, where the trace proves the recovery path?
+
+**Environment:**
+
+- Model: `nvidia/nvidia/nemotron-3.5-lightning`
+- Provider endpoint: `https://inference-api.nvidia.com/v1`
+- Harness: focused output-recovery fixture, five alternating pairs
+- Baseline: `1c6d1a23c081014ce70595396c4becc1112426b8`
+- Candidate: `80631c4aeaa34e4c0f3aca987992846593c333b1`
+- Relay: ATOF enabled in the same isolated Hermes home for both arms
+
+The fixture deletes its readable source as it begins execution. A run passes
+only if the final response contains the token and its Relay trace shows exactly
+one execution of the fixture followed by `search_files` or `read_file` on the
+candidate spill artifact. This rejects source inspection, output filtering, and
+rerunning the command as substitutes for recovery.
+
+| Arm | Trace-valid recovery | Mean LLM calls | Mean tool calls | Mean result bytes | Mean wall time |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Baseline | 0/5 | 1.0 | 0.8 | 15 KB | 88s |
+| Candidate | 5/5 | 3.0 | 2.0 | 50 KB | 13s |
+
+**Decision:** use this as the blog's focused recovery case study. It proves a
+correctness and wall-time improvement for the intended failure mode. It does
+not establish a general agent benchmark or a cost reduction: the successful
+candidate performs an extra retrieval step and produces larger tool results.
 
 ## Next selection gate
 
@@ -115,8 +171,10 @@ agent, a selected fixture must show all of the following:
 
 1. A Relay trace identifies a repeatable baseline failure or inefficiency.
 2. The candidate is narrowly tied to that behavior.
-3. Repeated runs show a material verifier, latency, or cost improvement without
-   a cross-model regression.
+3. The fixture requires the intended recovery behavior rather than exposing the
+   expected answer in readable task source.
+4. Repeated, alternating runs show a material verifier, latency, or cost
+   improvement without a cross-model regression.
 
 Until then, the tutorial should present Relay as the evidence layer for an
 engineering decision, not as the source of an unverified performance claim.

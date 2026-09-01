@@ -31,9 +31,9 @@ The smoke task and this fixture serve different purposes:
    infer a failure pattern from a successful result alone.
 3. Freeze the model identifier, provider settings, timeout, maximum turns,
    Relay configuration, task fixture, source revisions, and evaluation date.
-4. Run the selected fixture against the pinned baseline and candidate with at
-   least three attempts per arm. Increase the sample when the observed delta is
-   small or variable.
+4. Run the selected fixture against the pinned baseline and candidate in
+   alternating pairs, with at least three attempts per arm. Increase the sample
+   when the observed delta is small or variable.
 5. Report the verifier pass rate as the primary metric. Report wall time, LLM
    turns, tool calls, retries, and result bytes as secondary metrics.
 
@@ -48,11 +48,60 @@ The smoke task and this fixture serve different purposes:
 ## Local runner
 
 `../scripts/run_toolperf_ab.sh` runs one fixture through two pinned Hermes
-trees with Relay ATOF enabled in an isolated Hermes home. It never writes
+trees with Relay ATOF enabled in an isolated Hermes home and alternates the
+baseline and candidate repetitions. It never writes
 credentials, traces, or task artifacts into this repository. Set
 `TOOLPERF_DIR`, `BASELINE_TREE`, and `CANDIDATE_TREE` to the corresponding local
 checkouts. The script prints the aggregate table and leaves the raw artifacts
 under `/tmp` for review.
 
+The runner enables Hermes's opt-in `observability/nemo_relay` plugin only in
+that isolated home. The generated Relay `plugins.toml` then configures the
+ATOF exporter for each run.
+
 See [results.md](results.md) for completed experiments and publication
 decisions.
+
+## Output-recovery case
+
+`run_output_recovery_case.py` is a focused, trace-validated case study for the
+Hermes terminal-output recovery change. It compares two pinned Hermes source
+trees. The fixture removes its own source when it starts, then accepts a run
+only when the Relay trace shows one terminal execution followed by retrieval
+from the candidate's spill artifact. It is not a general software-engineering
+benchmark.
+
+Create the pinned source trees outside this repository first:
+
+```bash
+mkdir -p /tmp/hermes-output-recovery
+cd /tmp/hermes-output-recovery
+git clone https://github.com/NousResearch/hermes-agent.git hermes-agent
+cd hermes-agent
+git worktree add --detach ../baseline \
+  1c6d1a23c081014ce70595396c4becc1112426b8
+git worktree add --detach ../candidate \
+  80631c4aeaa34e4c0f3aca987992846593c333b1
+```
+
+Use a Python environment with the Hermes Agent dependencies installed. The
+evaluator imports each source tree through `PYTHONPATH`, so the same environment
+can run both revisions.
+
+```bash
+set -a
+source keys.env
+set +a
+
+python3 evaluation/run_output_recovery_case.py \
+  --baseline /tmp/hermes-output-recovery/baseline \
+  --candidate /tmp/hermes-output-recovery/candidate \
+  --python /path/to/hermes/.venv/bin/python
+```
+
+The command writes raw traces and a machine-readable `summary.json` only below
+`/tmp/nemo-relay-hermes-examples` by default. Publish aggregate outcomes, not
+raw model responses or trace payloads.
+
+The evaluator defaults to `https://inference-api.nvidia.com/v1`. Pass
+`--base-url` only when evaluating a compatible endpoint deliberately.
