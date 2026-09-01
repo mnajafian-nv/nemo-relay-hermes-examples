@@ -34,8 +34,9 @@ result and its Relay artifacts.
 
 > [!WARNING]
 > The tutorial enables Hermes' terminal tool. Hermes uses local command
-> execution by default, so run the tutorial only in a disposable workspace and
-> do not rely on the task prompt as an access-control boundary.
+> execution by default, so run the tutorial only in an isolated environment,
+> such as a VM or dedicated user account. Do not rely on the task prompt as an
+> access-control boundary.
 
 ## Run the Tutorial
 
