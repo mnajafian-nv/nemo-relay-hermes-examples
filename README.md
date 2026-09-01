@@ -86,10 +86,20 @@ runs a task that asks Hermes to execute `python3 sample.py`. The script prints
 
 ## Inspect the Artifacts
 
-The runner stores task output, the ATOF event stream, and an ATIF trajectory in
-the artifact directory. It does not retain Hermes authentication or runtime state.
+The runner stores task output and two complementary Relay artifacts in the
+artifact directory. It does not retain Hermes authentication or runtime state.
 
-Run the summarizer again by replacing `<artifact-directory>` with the path printed by the tutorial:
+- [ATOF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atof)
+  is the canonical raw JSONL event stream. Use it to diagnose a specific run
+  and inspect exact LLM, tool, and lifecycle events.
+- [ATIF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atif)
+  is a trajectory projection assembled from related ATOF events. Use it for a
+  step-oriented view of the agent run and offline analysis, replay, or evaluation.
+
+### Inspect ATOF
+
+Run the ATOF summarizer again by replacing `<artifact-directory>` with the
+path printed by the tutorial:
 
 ```bash
 HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
@@ -97,14 +107,23 @@ HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
   <artifact-directory>/atof/run.jsonl
 ```
 
+### Inspect ATIF
+
+Print the generated ATIF trajectory:
+
+```bash
+HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
+"$HERMES_PYTHON" -m json.tool \
+  <artifact-directory>/atif/trajectory-*.json
+```
+
 | Question | Where to look |
 | --- | --- |
-| Did the task finish? | `VALUE=42` and a completed ATIF trajectory. |
-| Which model and tool calls ran? | The printed summary and ATOF event stream. |
+| Did the task finish? | `VALUE=42` and an exported ATIF trajectory file. |
+| How much LLM and tool activity occurred? | The printed ATOF summary. |
+| Which model and tools ran? | The raw ATOF event stream. |
+| How did the agent progress through the task? | The ATIF trajectory. |
 | Did a tool fail? | `tool errors` and the raw ATOF events. |
-
-ATOF is Relay's ordered event stream. ATIF is the agent trajectory Relay
-derives from lifecycle events.
 
 > [!CAUTION]
 > Review artifacts before sharing them. They can contain prompts, tool arguments
