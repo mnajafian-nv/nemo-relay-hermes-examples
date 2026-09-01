@@ -1,85 +1,118 @@
-# Hermes and NeMo Relay examples
+# Hermes + NeMo Relay quickstart
 
-This is a working lab. Promote only the validated tutorial subset to the shared
-blog repository after the model, Hermes release, and publication claim are
-agreed.
+Run one Hermes task through NVIDIA Inference and inspect the NeMo Relay trace it
+produces. This repository is a small, runnable example of local agent
+observability, not a benchmark or a performance comparison.
 
-This repository accompanies an upcoming tutorial that shows how to run a Hermes coding-agent task with a model hosted on NVIDIA Inference and NeMo Relay, inspect the resulting trace, and use that evidence to evaluate a focused harness change.
+## What this run proves
 
-The repository intentionally keeps the first path small:
+The smoke task asks Hermes to execute `python3 sample.py` exactly once. A
+successful run proves that:
 
-1. Run a local Hermes task through an NVIDIA-hosted model.
-2. Enable NeMo Relay with a minimal plugin configuration.
-3. Verify that the task result and Relay telemetry were produced.
+- Hermes can call the configured NVIDIA-hosted model and terminal tool.
+- NeMo Relay captures the run.
+- Relay writes both ATOF events and an ATIF trajectory locally.
 
-The optional evaluation path compares a baseline and a trace-motivated change on deterministic tasks. It does not claim that enabling Relay itself improves an agent. Relay supplies the execution evidence used to choose and validate a change.
+The task returns `VALUE=42`. It is deliberately small so the trace is easy to
+read.
 
-## Prerequisites
+## Requirements
 
+- A macOS or Linux shell
 - Python 3.11 or later
 - Hermes Agent `0.20.5`
-- `nemo-relay` `0.7.2` in the Python environment Hermes uses
-- An NVIDIA Inference API key with access to `nvidia/nvidia/nemotron-3.5-lightning`
+- An NVIDIA Inference API key with access to
+  `nvidia/nvidia/nemotron-3.5-lightning`
 
-The supported smoke contract is pinned in
-[config/smoke.env](config/smoke.env). `scripts/check_environment.sh` verifies
-the installed Hermes and NeMo Relay versions before the run starts.
+The supported versions and model are pinned in
+[config/smoke.env](config/smoke.env).
 
-## Quick start
+## Install Hermes and Relay
 
-1. Copy the environment template and set your key locally:
+Install Hermes with the [official Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
+Then install the pinned Relay package into the Python environment used by the
+`hermes` command:
+
+```bash
+HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
+"$HERMES_PYTHON" -m pip install "nemo-relay==0.7.2"
+```
+
+`./scripts/check_environment.sh` confirms that Hermes and Relay use the pinned
+versions before the task starts.
+
+## Run it
+
+1. Create a local credentials file:
 
    ```bash
    cp keys.env.example keys.env
-   # Edit keys.env and set NVIDIA_API_KEY. Do not commit this file.
    ```
 
-2. Validate the local prerequisites:
+   Set `NVIDIA_API_KEY` in `keys.env`. The file is ignored by Git.
+
+2. Confirm the environment:
 
    ```bash
    ./scripts/check_environment.sh
    ```
 
-3. Run the included deterministic smoke task:
+3. Run the task:
 
    ```bash
    ./scripts/run_smoke_evaluation.sh
    ```
 
-The script runs Hermes through NVIDIA Inference's OpenAI-compatible endpoint, `https://inference-api.nvidia.com/v1`, in an isolated local home beneath `/tmp/nemo-relay-hermes-examples`. A successful run prints `VALUE=42` and produces a Hermes session log plus Relay ATOF and ATIF outputs.
+The expected response is:
 
-## Output-recovery evaluator
+```text
+VALUE=42
+```
 
-The included evaluator isolates a Hermes terminal-output recovery behavior. The
-fixture compiles the task and removes its readable source before the agent
-starts, so a trace-valid run must recover the answer from terminal output.
-Relay verifies one terminal execution followed by retrieval from the
-candidate's spill artifact.
+## Inspect the trace
 
-A clean-checkout rerun did not reproduce the earlier candidate result, so this
-is not a blog performance or correctness claim. The evaluator remains useful
-for inspecting the trace contract and developing a stronger case. See
-[evaluation/README.md](evaluation/README.md) and
-[evaluation/results.md](evaluation/results.md) for the protocol and result
-ledger.
+The runner uses an isolated Hermes home and writes all artifacts beneath
+`/tmp/nemo-relay-hermes-examples` by default:
 
-## Evaluation method
+```text
+/tmp/nemo-relay-hermes-examples/
+  hermes-output.txt
+  relay/
+    atof/run.jsonl
+    atif/trajectory-<session-id>.json
+```
 
-The evaluation plan and result format are documented in
-[evaluation/README.md](evaluation/README.md). Record the task manifest before
-running a comparison. Use the same model, provider settings, task budget, and
-execution environment for baseline and candidate runs. The checked-in result
-ledger records completed experiments, including inconclusive ones.
+Use the included inspector to view the lifecycle without reading raw JSONL:
 
-## Safety and privacy
+```bash
+python3 scripts/inspect_smoke_trace.py \
+  /tmp/nemo-relay-hermes-examples/relay/atof/run.jsonl
+```
 
-The included Relay configuration disables full payload capture. Do not commit API keys, raw prompts, tool output, traces, or task artifacts that can contain sensitive data.
+The timeline should show a `hermes.session`, one `hermes.turn`, LLM calls, and
+one `terminal` scope. The raw ATOF stream is useful when you need individual
+events; the ATIF file is the assembled agent trajectory.
 
-## Status
+```text
+hermes.session
+  hermes.turn
+    hermes.logical_llm_call
+      openai.chat_completions
+      terminal
+```
 
-The NVIDIA Nemotron smoke configuration has passed the end-to-end contract:
-Hermes executes the terminal call, returns `VALUE=42`, and Relay writes ATOF
-and ATIF artifacts. The output-recovery evaluator is retained as experimental
-work because its first clean-checkout rerun did not reproduce the initial
-candidate result. The result ledger records both the rejected and exploratory
-cases.
+Treat every trace as sensitive until you inspect and sanitize it. Do not commit
+raw traces, logs, prompts, tool output, or credentials from a real workload.
+
+## What this example does not claim
+
+Relay records evidence about an agent run. It does not itself make an agent
+faster, cheaper, or more accurate. The `evaluation/` directory contains
+experimental harness work that is not part of this quickstart and does not
+support a public performance claim.
+
+## Next step
+
+Replace `sample-project/sample.py` with a safe task of your own, rerun the
+example, and use the ATOF or ATIF output to understand the agent's execution
+path.
