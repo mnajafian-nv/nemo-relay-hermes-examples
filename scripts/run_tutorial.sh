@@ -34,6 +34,18 @@ hermes_python="${HERMES_PYTHON:-$(sed -n '1s/^#!//p' "$hermes_path")}"
 # shellcheck disable=SC1090
 source "$repo_root/config/smoke.env"
 model="${MODEL:-$SMOKE_MODEL}"
+docker_image="$SMOKE_DOCKER_IMAGE"
+terminal_cwd="$SMOKE_TERMINAL_CWD"
+
+command -v docker >/dev/null || {
+  echo "Docker is required because this tutorial runs terminal commands in an isolated container." >&2
+  exit 1
+}
+docker image inspect "$docker_image" >/dev/null 2>&1 || {
+  echo "Tutorial image $docker_image is not available. Run ./scripts/build_tutorial_image.sh first." >&2
+  exit 1
+}
+
 mkdir -p "$run_root"
 "$hermes_python" "$repo_root/scripts/render_relay_config.py" \
   --output "$plugins_path" \
@@ -43,6 +55,15 @@ mkdir -p "$run_root"
 export HERMES_HOME="$hermes_home"
 export HERMES_NEMO_RELAY_PLUGINS_TOML="$plugins_path"
 export NVIDIA_BASE_URL
+# The tutorial task is intentionally fixed and runs in an ephemeral container.
+# Do not fall back to Hermes' host-terminal default when the caller has a
+# conflicting terminal environment in their shell.
+export TERMINAL_ENV=docker
+export TERMINAL_DOCKER_IMAGE="$docker_image"
+export TERMINAL_CWD="$terminal_cwd"
+export TERMINAL_CONTAINER_PERSISTENT=false
+export TERMINAL_DOCKER_NETWORK=false
+export TERMINAL_DOCKER_EXTRA_ARGS='["--read-only", "--tmpfs", "/tmp:rw,exec,size=1g"]'
 
 # Keep the task prompt and success check in the public smoke contract so a
 # reader can adapt the fixture without editing the runner.

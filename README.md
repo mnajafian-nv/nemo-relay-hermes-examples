@@ -18,6 +18,9 @@ Before you start, complete the following prerequisites:
 2. Install Hermes Agent `0.20.5` or later by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
 3. Use Python 3.11 through 3.13 in the environment that provides the `hermes` command.
 4. Have an NVIDIA Inference API key with access to `nvidia/nvidia/nemotron-3.5-lightning`.
+5. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
+
+**Success check:** `docker version` returns both client and server information.
 
 For the pinned model and execution limits, see [config/smoke.env](config/smoke.env).
 
@@ -28,15 +31,14 @@ instruction to run `python3 sample.py` from [sample-project](sample-project).
 The script prints `VALUE=42`, and Hermes must return that exact line.
 
 This creates one small, inspectable execution path: an LLM call selects the
-terminal tool, the tool runs the local script, and Hermes returns the verified
-result. The fixed output gives the runner a direct pass/fail check for the task
-result and its Relay artifacts.
+terminal tool, the tool runs the fixed script in a tutorial Docker image, and
+Hermes returns the verified result. The fixed output gives the runner a direct
+pass/fail check for the task result and its Relay artifacts.
 
-> [!WARNING]
-> The tutorial enables Hermes' terminal tool. Hermes uses local command
-> execution by default, so run the tutorial only in an isolated environment,
-> such as a VM or dedicated user account. Do not rely on the task prompt as an
-> access-control boundary.
+The runner uses an ephemeral Docker container with no network access, a
+read-only image filesystem, and no checkout bind mount. It does not pass
+`NVIDIA_API_KEY` to the container or fall back to Hermes' host-terminal
+default.
 
 ## Run the Tutorial
 
@@ -71,6 +73,14 @@ cp keys.env.example keys.env
 
 Set `NVIDIA_API_KEY` in `keys.env`. The file is Git-ignored, and using it keeps the key out of shell history.
 
+### Build the Tutorial Image
+
+Build the image that contains only the fixed sample task:
+
+```bash
+./scripts/build_tutorial_image.sh
+```
+
 ### Run and Verify the Task
 
 Run the tutorial:
@@ -80,8 +90,8 @@ Run the tutorial:
 ```
 
 The runner creates an isolated Hermes home, renders a Relay configuration, and
-runs a task that asks Hermes to execute `python3 sample.py`. The script prints
-`VALUE=42`.
+runs a task that asks Hermes to execute `python3 sample.py` in the tutorial
+container. The script prints `VALUE=42`.
 
 **Success check:** Confirm that the output includes all of the following:
 
@@ -159,8 +169,8 @@ change:
 
 1. Replace [sample-project/sample.py](sample-project/sample.py) with a safe,
    deterministic task that has a mechanical success check. Update `SMOKE_QUERY`
-   and `SMOKE_EXPECTED_OUTPUT` in [config/smoke.env](config/smoke.env) to match
-   it.
+   and `SMOKE_EXPECTED_OUTPUT` in [config/smoke.env](config/smoke.env), then
+   rebuild the tutorial image.
 2. Capture several baseline runs with the same model, task fixture, execution limits, and verifier.
 3. Use the traces to identify one repeated behavior, such as a retry, repeated file read, or tool error.
 4. Change the component responsible for that behavior and run the same task and verifier again.
@@ -175,6 +185,10 @@ Confirm that `NVIDIA_API_KEY` is set in `keys.env` and can access the model in [
 ### No artifacts are written
 
 Do not use `--safe-mode`, because it prevents Hermes from loading the tutorial's Relay configuration. The runner prints the artifact directory whenever it creates artifacts, even if the task later fails.
+
+### The tutorial image is missing
+
+Run `./scripts/build_tutorial_image.sh`, then rerun the tutorial.
 
 ### Hermes reaches its turn limit
 
