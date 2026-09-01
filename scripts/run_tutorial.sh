@@ -56,14 +56,10 @@ export HERMES_HOME="$hermes_home"
 export HERMES_NEMO_RELAY_PLUGINS_TOML="$plugins_path"
 export NVIDIA_BASE_URL
 # The tutorial task is intentionally fixed and runs in an ephemeral container.
-# Do not fall back to Hermes' host-terminal default when the caller has a
-# conflicting terminal environment in their shell.
-export TERMINAL_ENV=docker
-export TERMINAL_DOCKER_IMAGE="$docker_image"
-export TERMINAL_CWD="$terminal_cwd"
-export TERMINAL_CONTAINER_PERSISTENT=false
-export TERMINAL_DOCKER_NETWORK=false
-export TERMINAL_DOCKER_EXTRA_ARGS='["--read-only", "--tmpfs", "/tmp:rw,exec,size=1g"]'
+# Do not inherit a host-terminal or Docker configuration from the caller.
+# shellcheck disable=SC1090
+source "$repo_root/scripts/configure_tutorial_terminal.sh"
+configure_tutorial_terminal "$docker_image" "$terminal_cwd"
 
 # Keep the task prompt and success check in the public smoke contract so a
 # reader can adapt the fixture without editing the runner.

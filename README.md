@@ -39,9 +39,9 @@ terminal activity in the Relay trace, and a terminal command that references
 `sample.py`.
 
 The runner uses an ephemeral Docker container with no network access, a
-read-only image filesystem, and no checkout bind mount. It does not pass
-`NVIDIA_API_KEY` to the container or fall back to Hermes' host-terminal
-default.
+read-only root filesystem, and ephemeral writable work areas. It does not
+mount the checkout, pass `NVIDIA_API_KEY` to the container, or fall back to
+Hermes' host-terminal default.
 
 ## Run the Tutorial
 
@@ -200,7 +200,8 @@ key.
 ```bash
 python3 -m unittest discover -s tests -v
 python3 -m py_compile scripts/render_relay_config.py scripts/summarize_atof.py scripts/summarize_atif.py
-bash -n scripts/build_tutorial_image.sh scripts/check_environment.sh scripts/run_tutorial.sh
+bash -n scripts/build_tutorial_image.sh scripts/check_environment.sh \
+  scripts/configure_tutorial_terminal.sh scripts/run_tutorial.sh
 ```
 
 </details>
