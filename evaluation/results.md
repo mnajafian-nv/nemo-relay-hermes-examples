@@ -148,21 +148,37 @@ only in oversized terminal output, where the trace proves the recovery path?
 - Candidate: `80631c4aeaa34e4c0f3aca987992846593c333b1`
 - Relay: ATOF enabled in the same isolated Hermes home for both arms
 
-The fixture deletes its readable source as it begins execution. A run passes
-only if the final response contains the token and its Relay trace shows exactly
+The fixture removed its readable source as execution began. A run passed only
+if the final response contained the token and its Relay trace showed exactly
 one execution of the fixture followed by `search_files` or `read_file` on the
-candidate spill artifact. This rejects source inspection, output filtering, and
-rerunning the command as substitutes for recovery.
+candidate spill artifact. This rejected source inspection, output filtering,
+and rerunning the command as substitutes for recovery.
 
 | Arm | Trace-valid recovery | Mean LLM calls | Mean tool calls | Mean result bytes | Mean wall time |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Baseline | 0/5 | 1.0 | 0.8 | 15 KB | 88s |
 | Candidate | 5/5 | 3.0 | 2.0 | 50 KB | 13s |
 
-**Decision:** use this as the blog's focused recovery case study. It proves a
-correctness and wall-time improvement for the intended failure mode. It does
-not establish a general agent benchmark or a cost reduction: the successful
-candidate performs an extra retrieval step and produces larger tool results.
+**Initial decision:** this was a promising focused recovery case. That decision
+was superseded by the clean-checkout reproduction below.
+
+## 2026-09-01: clean-checkout reproduction
+
+**Question:** does the output-recovery result reproduce from a clean clone of
+this repository with the same model, source revisions, and five-pair protocol?
+
+| Arm | Trace-valid recovery | Mean LLM calls | Mean tool calls | Mean result bytes | Mean wall time |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Baseline | 0/5 | 7.6 | 6.8 | 61 KB | 120s |
+| Candidate | 2/5 | 3.6 | 2.6 | 50 KB | 18s |
+
+The candidate retrieved the spill artifact in some runs, but three runs first
+read the task source and were rejected by the trace verifier. A subsequent
+source-free fixture check also showed the model attempting unsupported terminal
+inspection rather than the recovery path.
+
+**Decision:** do not use this as a blog result. Keep the evaluator as a
+diagnostic tool until a fresh, repeatable protocol passes its trace contract.
 
 ## Next selection gate
 

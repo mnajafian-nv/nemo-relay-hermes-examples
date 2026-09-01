@@ -62,14 +62,14 @@ ATOF exporter for each run.
 See [results.md](results.md) for completed experiments and publication
 decisions.
 
-## Output-recovery case
+## Output-recovery evaluator
 
-`run_output_recovery_case.py` is a focused, trace-validated case study for the
-Hermes terminal-output recovery change. It compares two pinned Hermes source
-trees. The fixture removes its own source when it starts, then accepts a run
-only when the Relay trace shows one terminal execution followed by retrieval
-from the candidate's spill artifact. It is not a general software-engineering
-benchmark.
+`run_output_recovery_case.py` is an experimental, trace-validated evaluator for
+the Hermes terminal-output recovery change. It compares two pinned Hermes source
+trees. The fixture compiles the task and removes its readable source before the
+agent starts, then accepts a run only when the Relay trace shows one terminal
+execution followed by retrieval from the candidate's spill artifact. It is not
+a general software-engineering benchmark or a published improvement claim.
 
 Create the pinned source trees outside this repository first:
 
@@ -105,3 +105,7 @@ raw model responses or trace payloads.
 
 The evaluator defaults to `https://inference-api.nvidia.com/v1`. Pass
 `--base-url` only when evaluating a compatible endpoint deliberately.
+
+The first clean-checkout rerun did not reproduce the initial candidate result,
+so do not use this evaluator as blog evidence until it passes a fresh,
+repeatable protocol.

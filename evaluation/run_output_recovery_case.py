@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import py_compile
 import shutil
 import subprocess
 import sys
@@ -62,16 +63,17 @@ def parse_args() -> argparse.Namespace:
 
 def write_task(project: Path) -> Path:
     project.mkdir(parents=True, exist_ok=True)
-    script = project / "noisy_build.py"
-    script.write_text(
-        "from pathlib import Path\n"
-        "Path(__file__).unlink()\n"
+    source = project / "noisy_build.py"
+    script = project / "noisy_build.pyc"
+    source.write_text(
         "for i in range(4000):\n"
         "    print(f'[build] step {i} ' + 'x' * 60)\n"
         "    if i == 2000:\n"
         f"        print('UNIQUE_TOKEN={TOKEN}')\n",
         encoding="utf-8",
     )
+    py_compile.compile(str(source), cfile=str(script), doraise=True)
+    source.unlink()
     return script
 
 
@@ -167,7 +169,7 @@ def trace_valid_recovery(response: str, trace_path: Path) -> bool:
     return (
         len(script_commands) == 1
         and script_commands[0].startswith("python3 ")
-        and script_commands[0].endswith("/proj/noisy_build.py")
+        and script_commands[0].endswith("/proj/noisy_build.pyc")
         and saw_spill_retrieval
     )
 
