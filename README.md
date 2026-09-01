@@ -39,7 +39,7 @@ Hermes owns the Relay runtime in this release. Do not enable the removed
 
 ## Tutorial Steps
 
-Work through each step in order. The runner creates an isolated Hermes profile
+Work through each step in order. The runner creates an isolated Hermes home
 for every execution, so it does not modify your normal Hermes configuration.
 
 ### Run the Task with Relay Enabled
@@ -64,7 +64,8 @@ for every execution, so it does not modify your normal Hermes configuration.
 
    The runner renders a Relay `plugins.toml`, starts Hermes with that file,
    runs the sample task, verifies the final answer, and writes ATOF and ATIF
-   artifacts below `/tmp/nemo-relay-hermes-examples` by default.
+   artifacts under `artifacts/runs/` in the cloned repository by default. This
+   directory is ignored by Git. Set `RUNTIME_ROOT` to store artifacts elsewhere.
 
 **✅ Success Check:** The command prints `Task verified: VALUE=42`, reports a
 nonzero number of completed LLM scopes and tool calls, reports `tool errors: 0`,

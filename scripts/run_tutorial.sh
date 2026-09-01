@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-runtime_root="${RUNTIME_ROOT:-/tmp/nemo-relay-hermes-examples}"
+runtime_root="${RUNTIME_ROOT:-$repo_root/artifacts}"
 run_root="$runtime_root/runs/$(date -u +%Y%m%dT%H%M%SZ)-$$"
 hermes_home="$run_root/hermes-home"
 plugins_path="$hermes_home/plugins.toml"

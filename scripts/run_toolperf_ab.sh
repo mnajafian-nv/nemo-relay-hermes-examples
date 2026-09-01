@@ -3,7 +3,8 @@ set -euo pipefail
 
 # Run one deterministic Hermes ToolPerf fixture through pinned baseline and
 # candidate source trees. Relay is enabled in an isolated Hermes home for both
-# arms, and all raw artifacts stay beneath /tmp by default.
+# arms, and raw artifacts stay in the repository's ignored artifacts directory
+# by default.
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 toolperf_dir="${TOOLPERF_DIR:?Set TOOLPERF_DIR to the ToolPerf harness directory.}"
@@ -12,7 +13,7 @@ candidate_tree="${CANDIDATE_TREE:?Set CANDIDATE_TREE to the pinned Hermes candid
 model="${MODEL:-nvidia/nvidia/nemotron-3.5-lightning}"
 task="${TASK:-err_big_output}"
 repetitions="${REPETITIONS:-3}"
-evaluation_root="${EVALUATION_ROOT:-/tmp/nemo-relay-hermes-examples/toolperf/run}"
+evaluation_root="${EVALUATION_ROOT:-$repo_root/artifacts/toolperf/run}"
 python="${PYTHON:-$baseline_tree/.venv/bin/python}"
 
 if [[ ! "$repetitions" =~ ^[1-9][0-9]*$ ]]; then

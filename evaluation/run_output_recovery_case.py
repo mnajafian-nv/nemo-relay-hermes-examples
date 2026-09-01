@@ -47,7 +47,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-root",
         type=Path,
-        default=Path("/tmp/nemo-relay-hermes-examples")
+        default=Path(__file__).resolve().parents[1]
+        / "artifacts"
         / f"output-recovery-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}",
     )
     args = parser.parse_args()
