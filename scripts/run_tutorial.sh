@@ -44,6 +44,7 @@ export HERMES_HOME="$hermes_home"
 export HERMES_NEMO_RELAY_PLUGINS_TOML="$plugins_path"
 export NVIDIA_BASE_URL
 
+# Require Hermes to use the terminal and return a mechanically verified result.
 query='Run exactly `python3 sample.py` in the current directory. Reply with only the exact output line.'
 output_path="$run_root/hermes-output.txt"
 

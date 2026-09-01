@@ -21,6 +21,17 @@ Before you start, complete the following prerequisites:
 
 For the pinned model and execution limits, see [config/smoke.env](config/smoke.env).
 
+## About the Sample Task
+
+The sample task is a minimal terminal-use workflow. Hermes receives an
+instruction to run `python3 sample.py` from [sample-project](sample-project).
+The script prints `VALUE=42`, and Hermes must return that exact line.
+
+This creates one small, inspectable execution path: an LLM call selects the
+terminal tool, the tool runs the local script, and Hermes returns the verified
+result. The fixed output gives the runner a direct pass/fail check for the task
+result and its Relay artifacts.
+
 ## Run the Tutorial
 
 ### Clone the Repository
