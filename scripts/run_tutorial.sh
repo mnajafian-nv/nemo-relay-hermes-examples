@@ -72,7 +72,8 @@ printf 'Trace summary:\n'
 "$hermes_python" "$repo_root/scripts/summarize_atof.py" \
   "$trace_path" \
   --require-completed-llm-scope \
-  --require-tool-call
+  --require-tool-call \
+  --require-no-tool-errors
 run_succeeded=true
 printf '\nTask verified: %s\n' "$SMOKE_EXPECTED_OUTPUT"
 printf '\nArtifacts: %s\n' "$run_root"

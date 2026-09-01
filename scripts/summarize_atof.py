@@ -60,16 +60,22 @@ def summarize(events: list[Event]) -> dict[str, int]:
     }
 
 
-def validate_required_activity(
-    summary: dict[str, int], *, require_llm: bool, require_tool: bool
+def validate_trace_requirements(
+    summary: dict[str, int],
+    *,
+    require_llm: bool,
+    require_tool: bool,
+    require_no_tool_errors: bool,
 ) -> None:
     missing: list[str] = []
     if require_llm and summary["completed_llm_scopes"] == 0:
         missing.append("completed LLM scope")
     if require_tool and summary["tool_calls"] == 0:
         missing.append("tool call")
+    if require_no_tool_errors and summary["tool_errors"] != 0:
+        missing.append("error-free tool calls")
     if missing:
-        raise ValueError(f"trace is missing required activity: {', '.join(missing)}")
+        raise ValueError(f"trace does not meet tutorial requirements: {', '.join(missing)}")
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -85,6 +91,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="Fail when the trace has no tool-call scope",
     )
+    parser.add_argument(
+        "--require-no-tool-errors",
+        action="store_true",
+        help="Fail when any tool-call scope ends with an error",
+    )
     return parser.parse_args(argv)
 
 
@@ -92,10 +103,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     try:
         summary = summarize(load_events(args.trace))
-        validate_required_activity(
+        validate_trace_requirements(
             summary,
             require_llm=args.require_completed_llm_scope,
             require_tool=args.require_tool_call,
+            require_no_tool_errors=args.require_no_tool_errors,
         )
     except (OSError, TypeError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)

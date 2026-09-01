@@ -35,24 +35,41 @@ class SummarizeAtofTests(unittest.TestCase):
             },
         )
 
-    def test_validate_required_activity_rejects_missing_llm_scope(self) -> None:
+    def test_validate_trace_requirements_rejects_missing_llm_scope(self) -> None:
         with self.assertRaisesRegex(ValueError, "completed LLM scope"):
-            summarize_atof.validate_required_activity(
+            summarize_atof.validate_trace_requirements(
                 {
                     "completed_llm_scopes": 0,
                     "tool_calls": 1,
+                    "tool_errors": 0,
                 },
                 require_llm=True,
                 require_tool=True,
+                require_no_tool_errors=True,
             )
 
-    def test_validate_required_activity_rejects_missing_tool_call(self) -> None:
+    def test_validate_trace_requirements_rejects_missing_tool_call(self) -> None:
         with self.assertRaisesRegex(ValueError, "tool call"):
-            summarize_atof.validate_required_activity(
+            summarize_atof.validate_trace_requirements(
                 {
                     "completed_llm_scopes": 1,
                     "tool_calls": 0,
+                    "tool_errors": 0,
                 },
                 require_llm=True,
                 require_tool=True,
+                require_no_tool_errors=True,
+            )
+
+    def test_validate_trace_requirements_rejects_tool_errors(self) -> None:
+        with self.assertRaisesRegex(ValueError, "error-free tool calls"):
+            summarize_atof.validate_trace_requirements(
+                {
+                    "completed_llm_scopes": 1,
+                    "tool_calls": 1,
+                    "tool_errors": 1,
+                },
+                require_llm=True,
+                require_tool=True,
+                require_no_tool_errors=True,
             )
