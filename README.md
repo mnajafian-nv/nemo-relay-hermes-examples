@@ -19,7 +19,7 @@ Before you start, complete the following prerequisites:
 1. Use macOS or Linux.
 2. Install Hermes Agent `0.20.5` by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
 3. Use Python 3.11 through 3.13 in the environment that provides the `hermes` command.
-4. Have an NVIDIA Inference API key with access to `nvidia/nvidia/nemotron-3.5-lightning`.
+4. Have an NVIDIA Inference API key with access to `nvidia/nvidia/llama-3.3-nemotron-super-49b-v1.5`.
 5. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
 
 **Success check:** `docker version` returns both client and server information.
@@ -29,8 +29,9 @@ For the pinned model and execution limits, see [config/smoke.env](config/smoke.e
 ## About the Sample Task
 
 The sample task is a minimal terminal-use workflow. Hermes receives an
-instruction to run `python3 sample.py` from [sample-project](sample-project).
-The script prints `VALUE=42`, and Hermes must return that exact line.
+instruction to run a fixed script from [sample-project](sample-project) in the
+tutorial image. The script prints `VALUE=42`, and Hermes must return that
+exact line.
 
 This creates one small, inspectable execution path: an LLM call selects the
 terminal tool, Hermes is asked to run the fixed script in a tutorial Docker
@@ -87,8 +88,8 @@ Run the tutorial:
 ```
 
 The runner creates an isolated Hermes home, renders a Relay configuration, and
-runs a task that asks Hermes to execute `python3 sample.py` in the tutorial
-container. The script prints `VALUE=42`.
+runs a task that asks Hermes to execute the fixed sample script in the
+tutorial container. The script prints `VALUE=42`.
 
 **Success check:** Confirm that the output includes all of the following:
 

@@ -30,6 +30,13 @@ class RenderRelayConfigTests(unittest.TestCase):
         self.assertTrue(values["SMOKE_REQUIRED_TOOL_COMMAND"])
         self.assertEqual(values["HERMES_VERSION"], "0.20.5")
         self.assertEqual(values["NEMO_RELAY_VERSION"], "0.7.2")
+        self.assertEqual(values["SMOKE_TERMINAL_CWD"], "/root")
+        self.assertIn(
+            "/opt/nemo-relay-hermes-tutorial/sample.py", values["SMOKE_QUERY"]
+        )
+        dockerfile = (REPOSITORY_ROOT / "Dockerfile").read_text(encoding="utf-8")
+        self.assertIn("WORKDIR /opt/nemo-relay-hermes-tutorial", dockerfile)
+        self.assertIn("COPY sample-project/sample.py ./sample.py", dockerfile)
 
     def test_render_config_uses_absolute_output_paths(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
