@@ -3,7 +3,8 @@
 **Goal:** Run a Hermes tool-use task through NVIDIA Inference, verify a known
 task result, and inspect the NeMo Relay artifacts produced by the run.
 
-**Validated with:** Hermes Agent `0.21.0` and its bundled NeMo Relay `0.7.2`.
+**Verified configuration:** Hermes Agent `0.20.5` with bundled NeMo Relay
+`0.7.2`. The runner verifies the bundled Relay version before it starts.
 
 **In this tutorial, you will:**
 
@@ -19,7 +20,7 @@ Before you start, complete the following prerequisites:
 1. Use macOS or Linux.
 2. Install [Git](https://git-scm.com/downloads).
 3. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
-4. Install Hermes Agent `0.21.0` by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). It bundles NeMo Relay `0.7.2` for this tutorial.
+4. Install Hermes Agent by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). The runner verifies that its bundled NeMo Relay version is `0.7.2`.
 5. Create an [NVIDIA API key](https://build.nvidia.com/nvidia/llama-3_3-nemotron-super-49b-v1_5) and confirm that it can access `llama-3.3-nemotron-super-49b-v1.5`.
 
 **Success check:** `docker version` returns both client and server information.
@@ -58,9 +59,9 @@ cd nemo-relay-hermes-examples
 
 ### Use Hermes' Bundled NeMo Relay
 
-Hermes Agent `0.21.0` bundles NeMo Relay `0.7.2` on the supported platforms
-used by this tutorial. Do not install a separate Relay package into the Hermes
-environment. The runner verifies both versions before it starts the task.
+Use a Hermes Agent installation that bundles NeMo Relay `0.7.2`. Do not install
+a separate Relay package into the Hermes environment. The runner verifies the
+bundled Relay version before it starts the task.
 
 ### Configure NVIDIA Inference Access
 

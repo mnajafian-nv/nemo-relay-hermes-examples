@@ -28,7 +28,7 @@ class RenderRelayConfigTests(unittest.TestCase):
         self.assertTrue(values["SMOKE_QUERY"])
         self.assertTrue(values["SMOKE_EXPECTED_OUTPUT"])
         self.assertTrue(values["SMOKE_REQUIRED_TOOL_COMMAND"])
-        self.assertEqual(values["HERMES_VERSION"], "0.21.0")
+        self.assertNotIn("HERMES_VERSION", values)
         self.assertEqual(values["NEMO_RELAY_VERSION"], "0.7.2")
         self.assertEqual(values["SMOKE_TERMINAL_CWD"], "/root")
         self.assertIn(
