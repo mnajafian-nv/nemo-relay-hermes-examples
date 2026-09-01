@@ -1,64 +1,84 @@
-# Trace a Hermes Task with NeMo Relay
+# Run a Hermes Task with NeMo Relay
 
-Run a Hermes tool-use task through NVIDIA Inference, verify its deterministic
-success condition, and inspect the NeMo Relay artifacts written to your machine.
+**Goal:** Run a Hermes tool-use task through NVIDIA Inference, verify a known
+task result, and inspect the NeMo Relay artifacts produced by the run.
 
-The task asks Hermes to run `python3 sample.py`. The script prints `VALUE=42`,
-so the task has one exact success condition and a trace that is small enough to
-inspect.
+**In this tutorial, you will:**
+
+1. Install NeMo Relay in the Python environment that Hermes uses.
+2. Run a deterministic task that asks Hermes to use the terminal.
+3. Verify the task result, trace activity, and exported trajectory.
+4. Use the trace as the starting point for a focused evaluation.
 
 ## Prerequisites
 
-Before you start, confirm the following:
+Before you start, complete the following prerequisites:
 
-- macOS or Linux
-- Hermes Agent `0.20.5` or later
-- Python 3.11 through 3.13 in the Python environment behind `hermes`
-- An NVIDIA Inference API key with access to
-  `nvidia/nvidia/nemotron-3.5-lightning`
-- NeMo Relay `0.7.2` in Hermes's Python environment:
+1. Use macOS or Linux.
+2. Install Hermes Agent `0.20.5` or later by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
+3. Use Python 3.11 through 3.13 in the environment that provides the `hermes` command.
+4. Have an NVIDIA Inference API key with access to `nvidia/nvidia/nemotron-3.5-lightning`.
 
-  ```bash
-  HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
-  "$HERMES_PYTHON" -m pip install "nemo-relay==0.7.2"
-  ```
-
-Install Hermes with the [official installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). The model, Relay version, and execution limits are in [config/smoke.env](config/smoke.env).
+For the pinned model and execution limits, see [config/smoke.env](config/smoke.env).
 
 ## Run the Tutorial
 
-1. Clone the repository and set your NVIDIA Inference API key:
+### Clone the Repository
 
-   ```bash
-   git clone https://github.com/mnajafian-nv/nemo-relay-hermes-examples.git
-   cd nemo-relay-hermes-examples
-   export NVIDIA_API_KEY="<your NVIDIA Inference API key>"
-   ```
+Clone this repository:
 
-   To keep the key out of your shell history, copy
-   [keys.env.example](keys.env.example) to `keys.env` and set
-   `NVIDIA_API_KEY` there. The file is ignored by Git.
+```bash
+git clone https://github.com/mnajafian-nv/nemo-relay-hermes-examples.git
+cd nemo-relay-hermes-examples
+```
 
-2. Run the tutorial:
+### Install NeMo Relay
 
-   ```bash
-   ./scripts/run_tutorial.sh
-   ```
+Install the version of NeMo Relay used by this tutorial in the Python environment that Hermes uses:
 
-   The runner creates an isolated Hermes home, renders a Relay `plugins.toml`,
-   runs the task, and writes ATOF and ATIF artifacts under `artifacts/runs/` in
-   the cloned repository. The retained directory contains task output and Relay
-   artifacts, not Hermes authentication or runtime state. Set `RUNTIME_ROOT`
-   to store artifacts in a different user-owned location.
+```bash
+HERMES_PYTHON="${HERMES_PYTHON:-$(sed -n '1s/^#!//p' "$(command -v hermes)")}"
+"$HERMES_PYTHON" -m pip install "nemo-relay==0.7.2"
+"$HERMES_PYTHON" -c 'from importlib.metadata import version; print(version("nemo-relay"))'
+```
 
-**Expected result:** The command prints `Task verified: VALUE=42`, a trace
-summary with at least one completed LLM scope and tool call, `tool errors: 0`,
-and the artifact directory.
+**Success check:** The last command prints `0.7.2`.
 
-## Inspect the Relay Artifacts
+### Configure NVIDIA Inference Access
 
-The runner prints a summary automatically. Run the summarizer again by using
-the artifact directory from the previous step:
+Copy the environment file and add your API key:
+
+```bash
+cp keys.env.example keys.env
+```
+
+Set `NVIDIA_API_KEY` in `keys.env`. The file is Git-ignored, and using it keeps the key out of shell history.
+
+### Run and Verify the Task
+
+Run the tutorial:
+
+```bash
+./scripts/run_tutorial.sh
+```
+
+The runner creates an isolated Hermes home, renders a Relay configuration, and
+runs a task that asks Hermes to execute `python3 sample.py`. The script prints
+`VALUE=42`.
+
+**Success check:** Confirm that the output includes all of the following:
+
+- `Task verified: VALUE=42`
+- A trace summary with at least one completed LLM scope and tool call
+- `tool errors: 0`
+- An `Artifacts:` path under `artifacts/runs/`
+
+## Inspect the Artifacts
+
+The runner stores task output, the ATOF event stream, and an ATIF trajectory in
+the artifact directory. It does not retain Hermes authentication or runtime state.
+
+Run the summarizer again by replacing `<artifact-directory>` with the path printed by the tutorial:
 
 ```bash
 HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
@@ -73,38 +93,39 @@ HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
 | Did a tool fail? | `tool errors` and the raw ATOF events. |
 
 ATOF is Relay's ordered event stream. ATIF is the agent trajectory Relay
-derives from lifecycle events. Review artifacts before sharing them. They can
-contain prompts, tool arguments and results, file paths, model output, and
-other application data.
+derives from lifecycle events.
 
-## From Trace to Experiment
+> [!CAUTION]
+> Review artifacts before sharing them. They can contain prompts, tool arguments
+> and results, file paths, model output, and other application data.
 
-Use the same workflow when you evaluate a focused agent change:
+## Next Steps
 
-1. Replace [sample-project/sample.py](sample-project/sample.py) with a safe
-   task that has a mechanical success check.
-2. Capture several baseline runs with the same model, task fixture, execution
-   limits, and verifier.
-3. Use the traces to identify one repeated behavior, such as a retry, repeated
-   file read, or tool error. Change only the component that owns that behavior.
-4. Run the same task and verifier again. Compare task completion first, then
-   use model calls, tool calls, elapsed time, and errors to explain the result.
+Use the artifacts from a completed tutorial run to plan one controlled agent
+change:
 
-## Troubleshooting
+1. Replace [sample-project/sample.py](sample-project/sample.py) with a safe, deterministic task that has a mechanical success check.
+2. Capture several baseline runs with the same model, task fixture, execution limits, and verifier.
+3. Use the traces to identify one repeated behavior, such as a retry, repeated file read, or tool error.
+4. Change the component responsible for that behavior and run the same task and verifier again.
+5. Compare task completion first. Then use model calls, tool calls, elapsed time, and errors to explain the result.
 
-**Authentication fails:** Confirm that `NVIDIA_API_KEY` is set and can access
-the model in [config/smoke.env](config/smoke.env).
+## Troubleshoot the Tutorial
 
-**No ATOF or ATIF artifact appears:** Do not use `--safe-mode`, because it
-disables custom Relay configuration. When a run creates artifacts, the runner
-prints their directory even if the task later fails.
+### Authentication fails
 
-**Hermes reaches its turn limit:** The runner marks the task as failed. Use the
-ATOF stream to identify whether the model, tool, or task prompt caused the
-extra work.
+Confirm that `NVIDIA_API_KEY` is set in `keys.env` and can access the model in [config/smoke.env](config/smoke.env).
+
+### No artifacts are written
+
+Do not use `--safe-mode`, because it prevents Hermes from loading the tutorial's Relay configuration. The runner prints the artifact directory whenever it creates artifacts, even if the task later fails.
+
+### Hermes reaches its turn limit
+
+The runner marks the task as failed. Inspect the ATOF stream to determine whether the model, tool, or task prompt caused the extra work.
 
 <details>
-<summary>Run the repository checks</summary>
+<summary>Validate repository changes</summary>
 
 These checks use synthetic events and do not call a model or require an API
 key.

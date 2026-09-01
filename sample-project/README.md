@@ -1,5 +1,5 @@
-# Deterministic smoke task
+# Deterministic Smoke Task
 
-`sample.py` prints `VALUE=42`. The tutorial asks Hermes to run it with the
-terminal tool and reply with that line. Keep this fixture small and deterministic
-so the task result and trace are easy to verify.
+`sample.py` prints `VALUE=42`. The tutorial asks Hermes to run the script with
+the terminal tool and return that line. Keep the fixture small and deterministic
+so you can verify both the task result and its trace.
