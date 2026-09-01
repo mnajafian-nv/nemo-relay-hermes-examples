@@ -44,7 +44,7 @@ class TutorialTerminalEnvironmentTests(unittest.TestCase):
                 "TERMINAL_CONTAINER_PERSISTENT=false",
                 "TERMINAL_CWD=/tutorial",
                 "TERMINAL_DOCKER_ENV={}",
-                "TERMINAL_DOCKER_EXTRA_ARGS=[\"--read-only\", \"--tmpfs\", \"/tmp:rw,exec,size=1g\"]",
+                "TERMINAL_DOCKER_EXTRA_ARGS=[\"--init\", \"--read-only\", \"--tmpfs\", \"/tmp:rw,exec,size=128m\", \"--pids-limit\", \"128\", \"--memory\", \"512m\", \"--memory-swap\", \"512m\", \"--cpus\", \"1\", \"--cap-drop\", \"ALL\", \"--security-opt\", \"no-new-privileges\"]",
                 "TERMINAL_DOCKER_FORWARD_ENV=[]",
                 "TERMINAL_DOCKER_IMAGE=tutorial-image",
                 "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE=false",

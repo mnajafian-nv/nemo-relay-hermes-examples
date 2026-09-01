@@ -66,18 +66,15 @@ configure_tutorial_terminal "$docker_image" "$terminal_cwd"
 query="$SMOKE_QUERY"
 output_path="$run_root/hermes-output.txt"
 
-(
-  cd "$repo_root/sample-project"
-  "$hermes_python" -m hermes_cli.main chat \
-    --provider nvidia \
-    --model "$model" \
-    --toolsets terminal \
-    --query "$query" \
-    --max-turns "$SMOKE_MAX_TURNS" \
-    --run-budget "$SMOKE_RUN_BUDGET_SECONDS" \
-    --accept-hooks \
-    --quiet
-) | tee "$output_path"
+"$hermes_python" -m hermes_cli.main chat \
+  --provider nvidia \
+  --model "$model" \
+  --toolsets terminal \
+  --query "$query" \
+  --max-turns "$SMOKE_MAX_TURNS" \
+  --run-budget "$SMOKE_RUN_BUDGET_SECONDS" \
+  --accept-hooks \
+  --quiet | tee "$output_path"
 
 if grep -Eq 'No reply:|maximum tool-iteration' "$output_path"; then
   echo "Hermes did not return a final response." >&2

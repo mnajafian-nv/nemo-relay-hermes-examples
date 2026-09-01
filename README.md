@@ -8,7 +8,7 @@ task result, and inspect the NeMo Relay artifacts produced by the run.
 **In this tutorial, you will:**
 
 1. Use the NeMo Relay version bundled with Hermes Agent.
-2. Run a deterministic task that asks Hermes to use the terminal.
+2. Run a fixed task with a deterministic success check.
 3. Verify the task result, trace activity, and exported trajectory.
 4. Use the trace as the starting point for a focused evaluation.
 
@@ -39,10 +39,11 @@ image, and Hermes returns the verified result. The runner verifies the returned 
 terminal activity in the Relay trace, and a terminal command that references
 `sample.py`.
 
-The runner uses an ephemeral Docker container with no network access, a
-read-only root filesystem, and ephemeral writable work areas. It does not
-mount the checkout, pass `NVIDIA_API_KEY` to the container, or fall back to
-Hermes' host-terminal default.
+The runner uses a constrained, ephemeral Docker container. It has no network
+access, no checkout mount, a read-only root filesystem, a 128-process limit,
+512 MiB of memory with no swap, and one CPU. It drops Linux capabilities,
+prevents privilege escalation, does not pass `NVIDIA_API_KEY` to the
+container, and does not fall back to Hermes' host-terminal default.
 
 ## Run the Tutorial
 
@@ -166,8 +167,8 @@ Use the artifacts from a completed tutorial run to plan one controlled agent
 change:
 
 1. Replace [sample-project/sample.py](sample-project/sample.py) with a safe,
-   deterministic task that has a mechanical success check. Update `SMOKE_QUERY`
-   and `SMOKE_EXPECTED_OUTPUT` in [config/smoke.env](config/smoke.env), then
+   fixed task that has a mechanical success check. Update `SMOKE_QUERY` and
+   `SMOKE_EXPECTED_OUTPUT` in [config/smoke.env](config/smoke.env), then
    rebuild the tutorial image.
 2. Capture several baseline runs with the same model, task fixture, execution limits, and verifier.
 3. Use the traces to identify one repeated behavior, such as a retry, repeated file read, or tool error.
