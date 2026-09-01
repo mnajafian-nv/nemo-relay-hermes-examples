@@ -27,6 +27,9 @@ class RenderRelayConfigTests(unittest.TestCase):
 
         self.assertTrue(values["SMOKE_QUERY"])
         self.assertTrue(values["SMOKE_EXPECTED_OUTPUT"])
+        self.assertTrue(values["SMOKE_REQUIRED_TOOL_COMMAND"])
+        self.assertEqual(values["HERMES_VERSION"], "0.20.5")
+        self.assertEqual(values["NEMO_RELAY_VERSION"], "0.7.2")
 
     def test_render_config_uses_absolute_output_paths(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

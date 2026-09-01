@@ -45,22 +45,8 @@ from hermes_cli import __version__
 print(__version__)
 PY
 )"
-if ! "$hermes_python" - "$HERMES_MINIMUM_VERSION" "$hermes_version" <<'PY'
-import sys
-
-
-def parse(value: str) -> tuple[int, ...]:
-    try:
-        return tuple(int(part) for part in value.split("."))
-    except ValueError as error:
-        raise SystemExit(f"invalid Hermes version: {value}") from error
-
-
-minimum, actual = map(parse, sys.argv[1:])
-raise SystemExit(0 if actual >= minimum else 1)
-PY
-then
-  echo "Expected Hermes Agent $HERMES_MINIMUM_VERSION or newer, found $hermes_version." >&2
+if [[ "$hermes_version" != "$HERMES_VERSION" ]]; then
+  echo "This tutorial was validated with Hermes Agent $HERMES_VERSION, found $hermes_version." >&2
   exit 1
 fi
 
@@ -70,11 +56,11 @@ from importlib.metadata import PackageNotFoundError, version
 try:
     print(version("nemo-relay"))
 except PackageNotFoundError:
-    raise SystemExit("not-installed")
+    print("not-installed")
 PY
 )"
 if [[ "$relay_version" != "$NEMO_RELAY_VERSION" ]]; then
-  echo "Expected nemo-relay $NEMO_RELAY_VERSION, found $relay_version." >&2
+  echo "Hermes Agent $HERMES_VERSION must bundle nemo-relay $NEMO_RELAY_VERSION, found $relay_version." >&2
   exit 1
 fi
 

@@ -3,9 +3,11 @@
 **Goal:** Run a Hermes tool-use task through NVIDIA Inference, verify a known
 task result, and inspect the NeMo Relay artifacts produced by the run.
 
+**Validated with:** Hermes Agent `0.20.5` and its bundled NeMo Relay `0.7.2`.
+
 **In this tutorial, you will:**
 
-1. Install NeMo Relay in the Python environment that Hermes uses.
+1. Use the NeMo Relay version bundled with Hermes Agent.
 2. Run a deterministic task that asks Hermes to use the terminal.
 3. Verify the task result, trace activity, and exported trajectory.
 4. Use the trace as the starting point for a focused evaluation.
@@ -15,7 +17,7 @@ task result, and inspect the NeMo Relay artifacts produced by the run.
 Before you start, complete the following prerequisites:
 
 1. Use macOS or Linux.
-2. Install Hermes Agent `0.20.5` or later by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
+2. Install Hermes Agent `0.20.5` by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
 3. Use Python 3.11 through 3.13 in the environment that provides the `hermes` command.
 4. Have an NVIDIA Inference API key with access to `nvidia/nvidia/nemotron-3.5-lightning`.
 5. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
@@ -31,9 +33,10 @@ instruction to run `python3 sample.py` from [sample-project](sample-project).
 The script prints `VALUE=42`, and Hermes must return that exact line.
 
 This creates one small, inspectable execution path: an LLM call selects the
-terminal tool, the tool runs the fixed script in a tutorial Docker image, and
-Hermes returns the verified result. The fixed output gives the runner a direct
-pass/fail check for the task result and its Relay artifacts.
+terminal tool, Hermes is asked to run the fixed script in a tutorial Docker
+image, and Hermes returns the verified result. The runner verifies the returned output,
+terminal activity in the Relay trace, and a terminal command that references
+`sample.py`.
 
 The runner uses an ephemeral Docker container with no network access, a
 read-only image filesystem, and no checkout bind mount. It does not pass
@@ -51,17 +54,11 @@ git clone https://github.com/mnajafian-nv/nemo-relay-hermes-examples.git
 cd nemo-relay-hermes-examples
 ```
 
-### Install NeMo Relay
+### Use Hermes' Bundled NeMo Relay
 
-Install the version of NeMo Relay used by this tutorial in the Python environment that Hermes uses:
-
-```bash
-HERMES_PYTHON="${HERMES_PYTHON:-$(sed -n '1s/^#!//p' "$(command -v hermes)")}"
-"$HERMES_PYTHON" -m pip install "nemo-relay==0.7.2"
-"$HERMES_PYTHON" -c 'from importlib.metadata import version; print(version("nemo-relay"))'
-```
-
-**Success check:** The last command prints `0.7.2`.
+Hermes Agent `0.20.5` bundles NeMo Relay `0.7.2` on the supported platforms
+used by this tutorial. Do not install a separate Relay package into the Hermes
+environment. The runner verifies both versions before it starts the task.
 
 ### Configure NVIDIA Inference Access
 
@@ -203,7 +200,7 @@ key.
 ```bash
 python3 -m unittest discover -s tests -v
 python3 -m py_compile scripts/render_relay_config.py scripts/summarize_atof.py scripts/summarize_atif.py
-bash -n scripts/check_environment.sh scripts/run_tutorial.sh
+bash -n scripts/build_tutorial_image.sh scripts/check_environment.sh scripts/run_tutorial.sh
 ```
 
 </details>

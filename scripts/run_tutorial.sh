@@ -97,7 +97,8 @@ printf 'ATOF summary:\n'
   "$trace_path" \
   --require-completed-llm-scope \
   --require-tool-call \
-  --require-no-tool-errors
+  --require-no-tool-errors \
+  --require-tool-command "$SMOKE_REQUIRED_TOOL_COMMAND"
 printf '\nATIF summary:\n'
 "$hermes_python" "$repo_root/scripts/summarize_atif.py" "$trajectory_path"
 run_succeeded=true

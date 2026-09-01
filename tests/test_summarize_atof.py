@@ -55,6 +55,7 @@ class SummarizeAtofTests(unittest.TestCase):
     def test_validate_trace_requirements_rejects_missing_llm_scope(self) -> None:
         with self.assertRaisesRegex(ValueError, "completed LLM scope"):
             summarize_atof.validate_trace_requirements(
+                [],
                 {
                     "completed_llm_scopes": 0,
                     "tool_calls": 1,
@@ -63,11 +64,25 @@ class SummarizeAtofTests(unittest.TestCase):
                 require_llm=True,
                 require_tool=True,
                 require_no_tool_errors=True,
+                required_tool_command=None,
             )
+
+    def test_validate_trace_accepts_required_tool_command(self) -> None:
+        events = summarize_atof.load_events(EXAMPLES / "terminal-task.atof.jsonl")
+
+        summarize_atof.validate_trace_requirements(
+            events,
+            summarize_atof.summarize(events),
+            require_llm=True,
+            require_tool=True,
+            require_no_tool_errors=True,
+            required_tool_command="sample.py",
+        )
 
     def test_validate_trace_requirements_rejects_missing_tool_call(self) -> None:
         with self.assertRaisesRegex(ValueError, "tool call"):
             summarize_atof.validate_trace_requirements(
+                [],
                 {
                     "completed_llm_scopes": 1,
                     "tool_calls": 0,
@@ -76,11 +91,13 @@ class SummarizeAtofTests(unittest.TestCase):
                 require_llm=True,
                 require_tool=True,
                 require_no_tool_errors=True,
+                required_tool_command=None,
             )
 
     def test_validate_trace_requirements_rejects_tool_errors(self) -> None:
         with self.assertRaisesRegex(ValueError, "error-free tool calls"):
             summarize_atof.validate_trace_requirements(
+                [],
                 {
                     "completed_llm_scopes": 1,
                     "tool_calls": 1,
@@ -89,4 +106,29 @@ class SummarizeAtofTests(unittest.TestCase):
                 require_llm=True,
                 require_tool=True,
                 require_no_tool_errors=True,
+                required_tool_command=None,
+            )
+
+    def test_validate_trace_rejects_missing_required_tool_command(self) -> None:
+        events = [
+            {
+                "kind": "scope",
+                "category": "tool",
+                "scope_category": "start",
+                "data": {"command": "python3 another_file.py"},
+            }
+        ]
+
+        with self.assertRaisesRegex(ValueError, "sample.py"):
+            summarize_atof.validate_trace_requirements(
+                events,
+                {
+                    "completed_llm_scopes": 1,
+                    "tool_calls": 1,
+                    "tool_errors": 0,
+                },
+                require_llm=True,
+                require_tool=True,
+                require_no_tool_errors=True,
+                required_tool_command="sample.py",
             )

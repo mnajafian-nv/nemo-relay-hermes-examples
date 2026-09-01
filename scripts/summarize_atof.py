@@ -60,12 +60,25 @@ def summarize(events: list[Event]) -> dict[str, int]:
     }
 
 
+def has_tool_command(events: list[Event], required_command: str) -> bool:
+    for event in events:
+        if not is_scope(event, "tool", "start"):
+            continue
+        data = event.get("data")
+        if isinstance(data, dict) and isinstance(data.get("command"), str):
+            if required_command in data["command"]:
+                return True
+    return False
+
+
 def validate_trace_requirements(
+    events: list[Event],
     summary: dict[str, int],
     *,
     require_llm: bool,
     require_tool: bool,
     require_no_tool_errors: bool,
+    required_tool_command: str | None,
 ) -> None:
     missing: list[str] = []
     if require_llm and summary["completed_llm_scopes"] == 0:
@@ -74,6 +87,8 @@ def validate_trace_requirements(
         missing.append("tool call")
     if require_no_tool_errors and summary["tool_errors"] != 0:
         missing.append("error-free tool calls")
+    if required_tool_command and not has_tool_command(events, required_tool_command):
+        missing.append(f"tool command containing {required_tool_command!r}")
     if missing:
         raise ValueError(f"trace does not meet tutorial requirements: {', '.join(missing)}")
 
@@ -96,18 +111,25 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="Fail when any tool-call scope ends with an error",
     )
+    parser.add_argument(
+        "--require-tool-command",
+        help="Fail when no tool-start event contains this command text",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     try:
-        summary = summarize(load_events(args.trace))
+        events = load_events(args.trace)
+        summary = summarize(events)
         validate_trace_requirements(
+            events,
             summary,
             require_llm=args.require_completed_llm_scope,
             require_tool=args.require_tool_call,
             require_no_tool_errors=args.require_no_tool_errors,
+            required_tool_command=args.require_tool_command,
         )
     except (OSError, TypeError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
