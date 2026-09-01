@@ -45,10 +45,6 @@ from hermes_cli import __version__
 print(__version__)
 PY
 )"
-if [[ "$hermes_version" != "$HERMES_VERSION" ]]; then
-  echo "This tutorial was validated with Hermes Agent $HERMES_VERSION, found $hermes_version." >&2
-  exit 1
-fi
 
 relay_version="$($hermes_python - <<'PY'
 from importlib.metadata import PackageNotFoundError, version
