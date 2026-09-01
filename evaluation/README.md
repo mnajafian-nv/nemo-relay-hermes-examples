@@ -25,9 +25,10 @@ an NVIDIA Inference API key in `keys.env` at the repository root.
 python3 evaluation/run_output_recovery_case.py --help
 ```
 
-The runner writes traces and result artifacts below `/tmp` by default. Keep
-those artifacts local because they can contain prompts, tool output, paths, and
-runtime identifiers.
+The runner writes traces and result artifacts under `artifacts/` in the cloned
+repository by default. This directory is ignored by Git. Keep those artifacts
+local because they can contain prompts, tool output, paths, and runtime
+identifiers.
 
 ## Evidence standard for a future comparison
 
