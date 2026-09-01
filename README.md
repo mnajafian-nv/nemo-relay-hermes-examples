@@ -3,7 +3,7 @@
 **Goal:** Run a Hermes tool-use task through NVIDIA Inference, verify a known
 task result, and inspect the NeMo Relay artifacts produced by the run.
 
-**Validated with:** Hermes Agent `0.20.5` and its bundled NeMo Relay `0.7.2`.
+**Validated with:** Hermes Agent `0.21.0` and its bundled NeMo Relay `0.7.2`.
 
 **In this tutorial, you will:**
 
@@ -17,7 +17,7 @@ task result, and inspect the NeMo Relay artifacts produced by the run.
 Before you start, complete the following prerequisites:
 
 1. Use macOS or Linux.
-2. Install Hermes Agent `0.20.5` by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
+2. Install Hermes Agent `0.21.0` by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
 3. Use Python 3.11 through 3.13 in the environment that provides the `hermes` command.
 4. Have an NVIDIA Inference API key with access to `nvidia/nvidia/llama-3.3-nemotron-super-49b-v1.5`.
 5. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
@@ -58,7 +58,7 @@ cd nemo-relay-hermes-examples
 
 ### Use Hermes' Bundled NeMo Relay
 
-Hermes Agent `0.20.5` bundles NeMo Relay `0.7.2` on the supported platforms
+Hermes Agent `0.21.0` bundles NeMo Relay `0.7.2` on the supported platforms
 used by this tutorial. Do not install a separate Relay package into the Hermes
 environment. The runner verifies both versions before it starts the task.
 
