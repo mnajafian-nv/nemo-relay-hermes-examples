@@ -56,7 +56,7 @@ except PackageNotFoundError:
 PY
 )"
 if [[ "$relay_version" != "$NEMO_RELAY_VERSION" ]]; then
-  echo "Hermes Agent $HERMES_VERSION must bundle nemo-relay $NEMO_RELAY_VERSION, found $relay_version." >&2
+  echo "Hermes Agent must bundle nemo-relay $NEMO_RELAY_VERSION, found $relay_version." >&2
   exit 1
 fi
 
