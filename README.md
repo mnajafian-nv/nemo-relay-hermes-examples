@@ -40,7 +40,8 @@ Hermes owns the Relay runtime in this release. Do not enable the removed
 ## Tutorial Steps
 
 Work through each step in order. The runner creates an isolated Hermes home
-for every execution, so it does not modify your normal Hermes configuration.
+for every execution and removes it when the run finishes, so it does not modify
+your normal Hermes configuration or retain Hermes runtime state with the trace.
 
 ### Run the Task with Relay Enabled
 
@@ -64,8 +65,10 @@ for every execution, so it does not modify your normal Hermes configuration.
 
    The runner renders a Relay `plugins.toml`, starts Hermes with that file,
    runs the sample task, verifies the final answer, and writes ATOF and ATIF
-   artifacts under `artifacts/runs/` in the cloned repository by default. This
-   directory is ignored by Git. Set `RUNTIME_ROOT` to store artifacts elsewhere.
+   artifacts under `artifacts/runs/` in the cloned repository by default. The
+   retained directory contains only the task output and Relay artifacts, not
+   Hermes authentication or runtime state. It is ignored by Git. Set
+   `RUNTIME_ROOT` to store artifacts elsewhere.
 
 **✅ Success Check:** The command prints `Task verified: VALUE=42`, reports a
 nonzero number of completed LLM scopes and tool calls, reports `tool errors: 0`,
@@ -79,7 +82,7 @@ the artifact directory from the previous step:
 ```bash
 HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
 "$HERMES_PYTHON" scripts/summarize_atof.py \
-  <artifact-directory>/hermes-home/atof/run.jsonl
+  <artifact-directory>/atof/run.jsonl
 ```
 
 | Question | Trace evidence |
@@ -101,6 +104,9 @@ Replace [sample-project/sample.py](sample-project/sample.py) with a safe task
 of your own. Retain a mechanical success check and run Relay in every arm of a
 comparison. Use the trace to identify behavior worth investigating before you
 change a prompt, tool setup, model setting, or Hermes behavior.
+
+Relay artifacts can contain prompts, tool output, file paths, and runtime
+identifiers. Keep them local and review them before sharing.
 
 ## Troubleshooting
 
@@ -139,3 +145,7 @@ bash -n scripts/check_environment.sh scripts/run_tutorial.sh
 ```
 
 </details>
+
+## License
+
+Apache-2.0. See [LICENSE](LICENSE).
