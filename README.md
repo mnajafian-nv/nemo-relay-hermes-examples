@@ -1,118 +1,100 @@
-# Hermes + NeMo Relay quickstart
+# Hermes and NeMo Relay example
 
-Run one Hermes task through NVIDIA Inference and inspect the NeMo Relay trace it
-produces. This repository is a small, runnable example of local agent
-observability, not a benchmark or a performance comparison.
+Run a small Hermes tool-use task through NVIDIA Inference, verify its result,
+and inspect the NeMo Relay trace produced locally.
 
-## What this run proves
+This is a runnable observability walkthrough. It shows what happened during an
+agent run. It does not claim that Relay alone improves quality, latency, or
+cost.
 
-The smoke task asks Hermes to execute `python3 sample.py` exactly once. A
-successful run proves that:
+## What you will do
 
-- Hermes can call the configured NVIDIA-hosted model and terminal tool.
-- NeMo Relay captures the run.
-- Relay writes both ATOF events and an ATIF trajectory locally.
+The tutorial asks Hermes to run `python3 sample.py` and return its output.
+The runner then verifies `VALUE=42`, confirms that Relay wrote ATOF and ATIF
+artifacts, and prints a compact ATOF summary.
 
-The task returns `VALUE=42`. It is deliberately small so the trace is easy to
-read.
+The result gives you evidence for four basic questions:
 
-## Requirements
+| Question | Evidence |
+| --- | --- |
+| Did the task finish? | `VALUE=42` and a completed ATIF file. |
+| Did Relay capture the run? | A non-empty ATOF JSONL file. |
+| Did Hermes call a model and a tool? | Completed LLM scopes and tool calls in the summary. |
+| Where are the artifacts? | The final line printed by the runner. |
 
-- A macOS or Linux shell
-- Python 3.11 or later
-- Hermes Agent `0.20.5`
+## Prerequisites
+
+- macOS or Linux
+- Hermes Agent `0.20.5` or later
+- Python 3.11 or later in the Python environment used by `hermes`
+- NeMo Relay `0.7.2` installed in that same environment
 - An NVIDIA Inference API key with access to
   `nvidia/nvidia/nemotron-3.5-lightning`
 
-The supported versions and model are pinned in
-[config/smoke.env](config/smoke.env).
+The version and model are the verified tutorial contract in
+[config/smoke.env](config/smoke.env). Hermes owns Relay natively in this
+release. Do not enable the removed `observability/nemo_relay` Hermes plugin.
 
-## Install Hermes and Relay
-
-Install Hermes with the [official Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
-Then install the pinned Relay package into the Python environment used by the
-`hermes` command:
+Install Hermes using the [official guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation), then install Relay into Hermes's Python environment:
 
 ```bash
 HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
 "$HERMES_PYTHON" -m pip install "nemo-relay==0.7.2"
 ```
 
-`./scripts/check_environment.sh` confirms that Hermes and Relay use the pinned
-versions before the task starts.
+## Run the tutorial
 
-## Run it
-
-1. Create a local credentials file:
-
-   ```bash
-   cp keys.env.example keys.env
-   ```
-
-   Set `NVIDIA_API_KEY` in `keys.env`. The file is ignored by Git.
-
-2. Confirm the environment:
-
-   ```bash
-   ./scripts/check_environment.sh
-   ```
-
-3. Run the task:
-
-   ```bash
-   ./scripts/run_smoke_evaluation.sh
-   ```
-
-The expected response is:
-
-```text
-VALUE=42
-```
-
-## Inspect the trace
-
-The runner uses an isolated Hermes home and writes all artifacts beneath
-`/tmp/nemo-relay-hermes-examples` by default:
-
-```text
-/tmp/nemo-relay-hermes-examples/
-  hermes-output.txt
-  relay/
-    atof/run.jsonl
-    atif/trajectory-<session-id>.json
-```
-
-Use the included inspector to view the lifecycle without reading raw JSONL:
+Clone the repository, export your NVIDIA key, and run one command:
 
 ```bash
-python3 scripts/inspect_smoke_trace.py \
-  /tmp/nemo-relay-hermes-examples/relay/atof/run.jsonl
+git clone https://github.com/mnajafian-nv/nemo-relay-hermes-examples.git
+cd nemo-relay-hermes-examples
+export NVIDIA_API_KEY="<your NVIDIA Inference API key>"
+./scripts/run_tutorial.sh
 ```
 
-The timeline should show a `hermes.session`, one `hermes.turn`, LLM calls, and
-one `terminal` scope. The raw ATOF stream is useful when you need individual
-events; the ATIF file is the assembled agent trajectory.
+The runner creates an isolated Hermes profile for each run and prints the
+artifact directory when it finishes. It writes below
+`/tmp/nemo-relay-hermes-examples` by default. Set `RUNTIME_ROOT` to use a
+different local directory.
 
-```text
-hermes.session
-  hermes.turn
-    hermes.logical_llm_call
-      openai.chat_completions
-      terminal
+If you prefer not to export a key in your shell, copy
+[keys.env.example](keys.env.example) to `keys.env` and set `NVIDIA_API_KEY`
+there. `keys.env` is ignored by Git.
+
+## Read the trace
+
+The runner prints a summary automatically. To repeat it later:
+
+```bash
+HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
+"$HERMES_PYTHON" scripts/summarize_atof.py \
+  <artifact-directory>/hermes-home/atof/run.jsonl
 ```
 
-Treat every trace as sensitive until you inspect and sanitize it. Do not commit
-raw traces, logs, prompts, tool output, or credentials from a real workload.
+ATOF is Relay's event stream. ATIF is the completed agent trajectory assembled
+from that stream. Both can contain prompts, tool arguments, tool output, local
+paths, and runtime identifiers. Treat them as sensitive and sanitize them
+before sharing. Do not commit generated traces or logs.
 
-## What this example does not claim
+## Use this pattern on your task
 
-Relay records evidence about an agent run. It does not itself make an agent
-faster, cheaper, or more accurate. The `evaluation/` directory contains
-experimental harness work that is not part of this quickstart and does not
-support a public performance claim.
+Replace [sample-project/sample.py](sample-project/sample.py) with a safe task
+and retain a mechanical success check. Run the task with Relay enabled in every
+comparison. The trace identifies the behavior to investigate; a controlled
+change to Hermes, the prompt, tools, or model settings is what can change the
+result.
 
-## Next step
+[evaluation/](evaluation/) records the evidence standard for a future
+before-and-after case study. It deliberately does not publish a performance
+claim from the exploratory work currently in this repository.
 
-Replace `sample-project/sample.py` with a safe task of your own, rerun the
-example, and use the ATOF or ATIF output to understand the agent's execution
-path.
+## Development checks
+
+The synthetic checks do not call a model or require an API key:
+
+```bash
+python3 -m unittest discover -s tests -v
+python3 -m py_compile scripts/render_relay_config.py scripts/summarize_atof.py
+bash -n scripts/check_environment.sh scripts/run_tutorial.sh
+```

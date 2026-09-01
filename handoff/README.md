@@ -1,10 +1,9 @@
 # Publication boundaries
 
-This repository contains a reproducible setup and trace-capture example. Keep
-credentials, raw traces, logs, task artifacts, and local checkout paths out of
-the repository.
+The quickstart is ready only when a reader can run it without access to a
+developer's local paths, credentials, raw traces, or task artifacts. Keep all
+of those inputs out of the repository.
 
-Promote an optimization result only after it reproduces from a clean checkout,
-preserves completion quality, and supports the specific claim with repeated
-paired runs. Until then, describe the work as a method or an experiment, not a
-performance result.
+Any future optimization claim needs a clean-checkout reproduction, a mechanical
+quality check, Relay enabled in both arms, and repeated paired runs that support
+the exact claim. Until then, publish the workflow, not a performance result.

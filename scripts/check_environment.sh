@@ -3,7 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 smoke_config="$repo_root/config/smoke.env"
-required_commands=(hermes python3)
+required_commands=(hermes)
 
 if [[ ! -f "$smoke_config" ]]; then
   echo "Missing smoke configuration: $smoke_config" >&2
@@ -20,24 +20,15 @@ for command in "${required_commands[@]}"; do
   fi
 done
 
-if [[ ! -f "$repo_root/keys.env" ]]; then
-  echo "Missing keys.env. Copy keys.env.example and set NVIDIA_API_KEY." >&2
-  exit 1
+if [[ -f "$repo_root/keys.env" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$repo_root/keys.env"
+  set +a
 fi
-
-set -a
-source "$repo_root/keys.env"
-set +a
 
 if [[ -z "${NVIDIA_API_KEY:-}" ]]; then
-  echo "NVIDIA_API_KEY is empty in keys.env." >&2
-  exit 1
-fi
-
-hermes_version_output="$(hermes --version 2>&1)"
-if ! grep -Fq "Hermes Agent v$HERMES_AGENT_VERSION" <<<"$hermes_version_output"; then
-  echo "Expected Hermes Agent $HERMES_AGENT_VERSION." >&2
-  echo "$hermes_version_output" >&2
+  echo "Set NVIDIA_API_KEY or copy keys.env.example to keys.env and set it there." >&2
   exit 1
 fi
 
@@ -45,6 +36,31 @@ hermes_path="$(command -v hermes)"
 hermes_python="${HERMES_PYTHON:-$(sed -n '1s/^#!//p' "$hermes_path")}"
 if [[ ! -x "$hermes_python" ]]; then
   echo "Set HERMES_PYTHON to the Python interpreter used by Hermes." >&2
+  exit 1
+fi
+
+hermes_version="$($hermes_python - <<'PY'
+from hermes_cli import __version__
+
+print(__version__)
+PY
+)"
+if ! "$hermes_python" - "$HERMES_MINIMUM_VERSION" "$hermes_version" <<'PY'
+import sys
+
+
+def parse(value: str) -> tuple[int, ...]:
+    try:
+        return tuple(int(part) for part in value.split("."))
+    except ValueError as error:
+        raise SystemExit(f"invalid Hermes version: {value}") from error
+
+
+minimum, actual = map(parse, sys.argv[1:])
+raise SystemExit(0 if actual >= minimum else 1)
+PY
+then
+  echo "Expected Hermes Agent $HERMES_MINIMUM_VERSION or newer, found $hermes_version." >&2
   exit 1
 fi
 
@@ -62,4 +78,4 @@ if [[ "$relay_version" != "$NEMO_RELAY_VERSION" ]]; then
   exit 1
 fi
 
-echo "Environment is ready: Hermes $HERMES_AGENT_VERSION, nemo-relay $NEMO_RELAY_VERSION."
+printf '%s\n' "Environment is ready: Hermes $hermes_version, nemo-relay $NEMO_RELAY_VERSION."
