@@ -80,7 +80,8 @@ runs a task that asks Hermes to execute `python3 sample.py`. The script prints
 **Success check:** Confirm that the output includes all of the following:
 
 - `Task verified: VALUE=42`
-- A trace summary with at least one completed LLM scope and tool call
+- An ATOF summary with at least one completed LLM scope and tool call
+- An ATIF summary with the agent, model, and trajectory step count
 - `tool errors: 0`
 - An `Artifacts:` path under `artifacts/runs/`
 
@@ -109,13 +110,24 @@ HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
 
 ### Inspect ATIF
 
-Print the generated ATIF trajectory:
+Run the ATIF summarizer:
+
+```bash
+HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
+"$HERMES_PYTHON" scripts/summarize_atif.py \
+  <artifact-directory>/atif/trajectory-*.json
+```
+
+<details>
+<summary>Print the raw ATIF trajectory</summary>
 
 ```bash
 HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
 "$HERMES_PYTHON" -m json.tool \
   <artifact-directory>/atif/trajectory-*.json
 ```
+
+</details>
 
 | Question | Where to look |
 | --- | --- |
@@ -162,7 +174,7 @@ key.
 
 ```bash
 python3 -m unittest discover -s tests -v
-python3 -m py_compile scripts/render_relay_config.py scripts/summarize_atof.py
+python3 -m py_compile scripts/render_relay_config.py scripts/summarize_atof.py scripts/summarize_atif.py
 bash -n scripts/check_environment.sh scripts/run_tutorial.sh
 ```
 

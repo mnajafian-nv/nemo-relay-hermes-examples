@@ -67,14 +67,17 @@ if grep -Eq 'No reply:|maximum tool-iteration' "$output_path"; then
 fi
 grep -qxF "$SMOKE_EXPECTED_OUTPUT" "$output_path"
 test -s "$trace_path"
-find "$run_root/atif" -type f -name 'trajectory-*.json' -size +0c -print -quit | grep -q .
+trajectory_path="$(find "$run_root/atif" -type f -name 'trajectory-*.json' -size +0c -print -quit)"
+test -n "$trajectory_path"
 
-printf 'Trace summary:\n'
+printf 'ATOF summary:\n'
 "$hermes_python" "$repo_root/scripts/summarize_atof.py" \
   "$trace_path" \
   --require-completed-llm-scope \
   --require-tool-call \
   --require-no-tool-errors
+printf '\nATIF summary:\n'
+"$hermes_python" "$repo_root/scripts/summarize_atif.py" "$trajectory_path"
 run_succeeded=true
 printf '\nTask verified: %s\n' "$SMOKE_EXPECTED_OUTPUT"
 printf '\nArtifacts: %s\n' "$run_root"
