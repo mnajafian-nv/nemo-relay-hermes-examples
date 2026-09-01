@@ -89,8 +89,8 @@ run, and compare equivalent runs before and after a focused agent change.
 the model in [config/smoke.env](config/smoke.env).
 
 **No ATOF or ATIF artifact appears:** Do not use `--safe-mode`, because it
-disables custom Relay configuration. The runner prints the artifact directory
-for each attempt.
+disables custom Relay configuration. When a run creates artifacts, the runner
+prints their directory even if the task later fails.
 
 **Hermes reaches its turn limit:** The runner marks the task as failed. Use the
 ATOF stream to identify whether the model, tool, or task prompt caused the
