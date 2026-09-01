@@ -32,6 +32,11 @@ terminal tool, the tool runs the local script, and Hermes returns the verified
 result. The fixed output gives the runner a direct pass/fail check for the task
 result and its Relay artifacts.
 
+> [!WARNING]
+> The tutorial enables Hermes' terminal tool. Hermes uses local command
+> execution by default, so run the tutorial only in a disposable workspace and
+> do not rely on the task prompt as an access-control boundary.
+
 ## Run the Tutorial
 
 ### Clone the Repository
@@ -151,7 +156,10 @@ HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
 Use the artifacts from a completed tutorial run to plan one controlled agent
 change:
 
-1. Replace [sample-project/sample.py](sample-project/sample.py) with a safe, deterministic task that has a mechanical success check.
+1. Replace [sample-project/sample.py](sample-project/sample.py) with a safe,
+   deterministic task that has a mechanical success check. Update `SMOKE_QUERY`
+   and `SMOKE_EXPECTED_OUTPUT` in [config/smoke.env](config/smoke.env) to match
+   it.
 2. Capture several baseline runs with the same model, task fixture, execution limits, and verifier.
 3. Use the traces to identify one repeated behavior, such as a retry, repeated file read, or tool error.
 4. Change the component responsible for that behavior and run the same task and verifier again.
