@@ -60,9 +60,31 @@ def summarize(events: list[Event]) -> dict[str, int]:
     }
 
 
+def validate_required_activity(
+    summary: dict[str, int], *, require_llm: bool, require_tool: bool
+) -> None:
+    missing: list[str] = []
+    if require_llm and summary["completed_llm_scopes"] == 0:
+        missing.append("completed LLM scope")
+    if require_tool and summary["tool_calls"] == 0:
+        missing.append("tool call")
+    if missing:
+        raise ValueError(f"trace is missing required activity: {', '.join(missing)}")
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Summarize a Relay ATOF JSONL trace.")
     parser.add_argument("trace", type=Path, help="Path to an ATOF JSONL trace")
+    parser.add_argument(
+        "--require-completed-llm-scope",
+        action="store_true",
+        help="Fail when the trace has no completed LLM scope",
+    )
+    parser.add_argument(
+        "--require-tool-call",
+        action="store_true",
+        help="Fail when the trace has no tool-call scope",
+    )
     return parser.parse_args(argv)
 
 
@@ -70,6 +92,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     try:
         summary = summarize(load_events(args.trace))
+        validate_required_activity(
+            summary,
+            require_llm=args.require_completed_llm_scope,
+            require_tool=args.require_tool_call,
+        )
     except (OSError, TypeError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1

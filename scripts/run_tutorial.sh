@@ -66,5 +66,8 @@ find "$run_root/atif" -type f -name 'trajectory-*.json' -size +0c -print -quit |
 
 printf '\nTask verified: %s\n' "$SMOKE_EXPECTED_OUTPUT"
 printf 'Trace summary:\n'
-"$hermes_python" "$repo_root/scripts/summarize_atof.py" "$trace_path"
+"$hermes_python" "$repo_root/scripts/summarize_atof.py" \
+  "$trace_path" \
+  --require-completed-llm-scope \
+  --require-tool-call
 printf '\nArtifacts: %s\n' "$run_root"

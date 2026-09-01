@@ -34,3 +34,25 @@ class SummarizeAtofTests(unittest.TestCase):
                 "correlated_events": 3,
             },
         )
+
+    def test_validate_required_activity_rejects_missing_llm_scope(self) -> None:
+        with self.assertRaisesRegex(ValueError, "completed LLM scope"):
+            summarize_atof.validate_required_activity(
+                {
+                    "completed_llm_scopes": 0,
+                    "tool_calls": 1,
+                },
+                require_llm=True,
+                require_tool=True,
+            )
+
+    def test_validate_required_activity_rejects_missing_tool_call(self) -> None:
+        with self.assertRaisesRegex(ValueError, "tool call"):
+            summarize_atof.validate_required_activity(
+                {
+                    "completed_llm_scopes": 1,
+                    "tool_calls": 0,
+                },
+                require_llm=True,
+                require_tool=True,
+            )
