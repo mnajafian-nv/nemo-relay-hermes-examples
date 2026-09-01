@@ -17,10 +17,9 @@ task result, and inspect the NeMo Relay artifacts produced by the run.
 Before you start, complete the following prerequisites:
 
 1. Use macOS or Linux.
-2. Install Hermes Agent `0.21.0` by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
-3. Use Python 3.11 through 3.13 in the environment that provides the `hermes` command.
-4. Have an NVIDIA Inference API key with access to `nvidia/nvidia/llama-3.3-nemotron-super-49b-v1.5`.
-5. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
+2. Install Hermes Agent `0.21.0` by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). It bundles NeMo Relay `0.7.2` for this tutorial.
+3. Have an NVIDIA API key authorized for `nvidia/nvidia/llama-3.3-nemotron-super-49b-v1.5`.
+4. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
 
 **Success check:** `docker version` returns both client and server information.
 
