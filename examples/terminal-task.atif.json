@@ -1,6 +1,6 @@
 {
   "agent": {
-    "model_name": "nvidia/nvidia/llama-3.3-nemotron-super-49b-v1.5",
+    "model_name": "nvidia/nemotron-3.5-lightning-30b-a3b",
     "name": "Hermes Agent"
   },
   "extra": {},
@@ -19,7 +19,7 @@
       "extra": {},
       "llm_call_count": 1,
       "message": "I will run the fixed sample script.",
-      "model_name": "nvidia/nvidia/llama-3.3-nemotron-super-49b-v1.5",
+      "model_name": "nvidia/nemotron-3.5-lightning-30b-a3b",
       "observation": "VALUE=42",
       "source": "agent",
       "step_id": 2,

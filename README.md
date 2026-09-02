@@ -21,7 +21,7 @@ Before you start, complete the following prerequisites:
 2. Install [Git](https://git-scm.com/downloads).
 3. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
 4. Install Hermes Agent by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). The runner verifies that its bundled NeMo Relay version is `0.7.2`.
-5. Create an [NVIDIA API key](https://build.nvidia.com/nvidia/llama-3_3-nemotron-super-49b-v1_5) and confirm that it can access `llama-3.3-nemotron-super-49b-v1.5`.
+5. Create an [NVIDIA API key](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b) and confirm that it can access `nvidia/nemotron-3.5-lightning-30b-a3b`.
 
 **Success check:** `docker version` returns both client and server information.
 
