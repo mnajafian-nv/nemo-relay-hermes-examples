@@ -1,8 +1,9 @@
 # Example Relay Artifacts
 
-These files show the terminal task from this repository in the two Relay
-formats produced by the tutorial. They are short, representative examples so
-you can inspect the event and trajectory shapes before running a model.
+These files are minimal teaching artifacts for the terminal task in this
+repository. They show the two Relay formats produced by the tutorial without
+duplicating every event from a live run, so you can inspect the event and
+trajectory shapes before calling a model.
 
 The examples include the task, requested command, and verified result. They
 use stable example identifiers instead of values from one machine's execution.

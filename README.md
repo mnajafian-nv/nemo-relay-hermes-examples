@@ -21,7 +21,7 @@ Before you start, complete the following prerequisites:
 2. Install [Git](https://git-scm.com/downloads).
 3. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
 4. Install Hermes Agent by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). The runner verifies that its bundled NeMo Relay version is `0.7.2`.
-5. Create an [NVIDIA API key](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b) and confirm that it can access `nvidia/nemotron-3.5-lightning-30b-a3b`.
+5. Open [NVIDIA Build](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b) for `nvidia/nemotron-3.5-lightning-30b-a3b`. Under **Prototype**, select **Generate API Key**.
 
 **Success check:** `docker version` returns both client and server information.
 
@@ -71,7 +71,7 @@ Copy the environment file:
 cp keys.env.example keys.env
 ```
 
-Open `keys.env` and add your API key:
+Open `keys.env` and add the key you generated on NVIDIA Build:
 
 ```text
 NVIDIA_API_KEY=<your-nvidia-api-key>
@@ -109,14 +109,15 @@ tutorial container. The script prints `VALUE=42`.
 
 ## Inspect the Artifacts
 
-Generated artifacts contain traces and task output, not your NVIDIA API key or
-temporary Hermes profile. The runner removes the temporary profile when it
-exits. Your `keys.env` file stays local and is ignored by Git.
+The runner does not copy `keys.env` or its temporary Hermes profile into the
+artifact directory, and its Relay configuration disables full payload capture.
+The runner removes the temporary profile when it exits. Your `keys.env` file
+stays local and is ignored by Git.
 
-Before running the tutorial, you can inspect the paired [example ATOF trace](examples/terminal-task.atof.jsonl)
+Before running the tutorial, you can inspect a minimal [example ATOF trace](examples/terminal-task.atof.jsonl)
 and [example ATIF trajectory](examples/terminal-task.atif.json). The
-[example walkthrough](examples/README.md) shows how the same terminal task is
-represented in each format.
+[example walkthrough](examples/README.md) shows the essential event and
+trajectory shapes for this terminal task.
 
 - [ATOF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atof)
   is the canonical raw JSONL event stream. Use it to diagnose a specific run
