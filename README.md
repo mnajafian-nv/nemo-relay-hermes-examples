@@ -63,6 +63,9 @@ Use a Hermes Agent installation that bundles NeMo Relay `0.7.2`. Do not install
 a separate Relay package into the Hermes environment. The runner verifies the
 bundled Relay version before it starts the task.
 
+This tutorial uses Hermes' native, in-process Relay integration. It does not
+start the Relay CLI or a local gateway.
+
 ### Configure NVIDIA Inference Access
 
 Copy the environment file:
@@ -119,12 +122,9 @@ and [example ATIF trajectory](examples/terminal-task.atif.json). The
 [example walkthrough](examples/README.md) shows the essential event and
 trajectory shapes for this terminal task.
 
-- [ATOF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atof)
-  is the canonical raw JSONL event stream. Use it to diagnose a specific run
-  and inspect exact LLM, tool, and lifecycle events.
-- [ATIF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atif)
-  is a trajectory projection assembled from related ATOF events. Use it for a
-  step-oriented view of the agent run and offline analysis, replay, or evaluation.
+[ATOF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atof)
+captures the raw, ordered lifecycle events. [ATIF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atif)
+organizes those events into a trajectory of agent steps, tool calls, and observations.
 
 ### Inspect ATOF
 
@@ -166,6 +166,9 @@ HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
 | How did the agent progress through the task? | The ATIF trajectory. |
 | Did a tool fail? | `tool errors` and the raw ATOF events. |
 
+Treat the trace as diagnostic evidence, not the evaluator. Use a mechanical
+acceptance check to determine whether the task succeeded.
+
 > [!CAUTION]
 > Review artifacts before sharing them. They can contain prompts, tool arguments
 > and results, file paths, model output, and other application data.
@@ -201,21 +204,6 @@ Run `./scripts/build_tutorial_image.sh`, then rerun the tutorial.
 ### Hermes reaches its turn limit
 
 The runner marks the task as failed. Inspect the ATOF stream to determine whether the model, tool, or task prompt caused the extra work.
-
-<details>
-<summary>Validate repository changes</summary>
-
-These checks use synthetic events and do not call a model or require an API
-key.
-
-```bash
-python3 -m unittest discover -s tests -v
-python3 -m py_compile scripts/render_relay_config.py scripts/summarize_atof.py scripts/summarize_atif.py
-bash -n scripts/build_tutorial_image.sh scripts/check_environment.sh \
-  scripts/configure_tutorial_terminal.sh scripts/run_tutorial.sh
-```
-
-</details>
 
 ## License
 
