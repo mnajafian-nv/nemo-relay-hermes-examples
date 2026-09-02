@@ -21,7 +21,7 @@ class SummarizeAtifTests(unittest.TestCase):
             summary,
             {
                 "agent": "Hermes Agent",
-                "model": "nvidia/nvidia/llama-3.3-nemotron-super-49b-v1.5",
+                "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
                 "steps": 2,
                 "llm_calls": 1,
                 "requested_tool_calls": 1,
