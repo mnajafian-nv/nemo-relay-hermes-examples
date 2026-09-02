@@ -1,4 +1,4 @@
-# Run a Hermes Task with NeMo Relay
+# Tracing Agent Harness Behavior with NVIDIA NeMo Relay
 
 **Goal:** Trace a controlled Hermes Agent tool-use task with NVIDIA NeMo Relay,
 then inspect the [Agent Trajectory Observability Format
@@ -10,8 +10,11 @@ trajectory from the run.
 The included task asks Hermes to use its terminal tool to run
 [`sample.py`](sample-project/sample.py) in an isolated Docker container and
 return only `VALUE=42`. The script always prints that value, so the returned
-result confirms that Hermes completed the expected task. NeMo Relay records
-the model and tool activity that produced it.
+result confirms that Hermes completed the expected task.
+
+With the included Relay configuration, Hermes emits NeMo Relay lifecycle events
+for its model calls and terminal-tool execution. Relay exports the run as an
+ATOF trace and ATIF trajectory.
 
 **In this tutorial, you will:**
 
@@ -19,8 +22,8 @@ the model and tool activity that produced it.
 2. Run a fixed tool-use task with a deterministic success check.
 3. Inspect how Hermes used the model and terminal tool to complete that task by
    comparing the raw ATOF trace with the ATIF trajectory.
-4. Use the traces and task verifier as a starting point for a focused agent
-   workflow evaluation.
+4. Use the traces and task verifier to plan a focused evaluation of a change to
+   the agent's tool-use behavior.
 
 ## Prerequisites
 
