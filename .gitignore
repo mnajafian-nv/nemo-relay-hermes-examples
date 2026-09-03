@@ -1,5 +1,6 @@
 keys.env
 .venv/
+.tutorial-runtime/
 __pycache__/
 .pytest_cache/
 artifacts/

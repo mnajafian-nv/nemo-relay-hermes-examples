@@ -2,8 +2,9 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-runtime_root="${RUNTIME_ROOT:-$repo_root/artifacts}"
-run_root="$runtime_root/runs/$(date -u +%Y%m%dT%H%M%SZ)-$$"
+tutorial_runtime_root="${TUTORIAL_RUNTIME_ROOT:-$repo_root/.tutorial-runtime}"
+artifact_root="${RUNTIME_ROOT:-$repo_root/artifacts}"
+run_root="$artifact_root/runs/$(date -u +%Y%m%dT%H%M%SZ)-$$"
 hermes_home="$(mktemp -d "${TMPDIR:-/tmp}/nemo-relay-hermes-tutorial.XXXXXX")"
 plugins_path="$hermes_home/plugins.toml"
 trace_path="$run_root/atof/run.jsonl"
@@ -28,8 +29,7 @@ if [[ -f "$repo_root/keys.env" ]]; then
 fi
 
 "$repo_root/scripts/check_environment.sh"
-hermes_path="$(command -v hermes)"
-hermes_python="${HERMES_PYTHON:-$(sed -n '1s/^#!//p' "$hermes_path")}"
+hermes_python="$tutorial_runtime_root/venv/bin/python"
 
 # shellcheck disable=SC1090
 source "$repo_root/config/smoke.env"

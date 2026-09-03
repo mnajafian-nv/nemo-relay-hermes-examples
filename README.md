@@ -32,10 +32,7 @@ Before you start, complete the following prerequisites:
 1. Use macOS or Linux.
 2. Install [Git](https://git-scm.com/downloads).
 3. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
-4. Install Hermes Agent by using the [Hermes installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation).
-   This tutorial was verified with Hermes Agent `0.20.5` and NeMo Relay `0.7.2`.
-   The runner verifies the Relay version before it starts.
-5. Open [NVIDIA Build](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b) for `nvidia/nemotron-3.5-lightning-30b-a3b`, then select **Generate API Key**.
+4. Open [NVIDIA Build](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b) for `nvidia/nemotron-3.5-lightning-30b-a3b`, then select **Generate API Key**.
 
 **Success check:** `docker version` returns both client and server information.
 
@@ -43,23 +40,30 @@ For the pinned model and execution limits, see [config/smoke.env](config/smoke.e
 
 ## How the Tutorial Runs
 
+The setup script installs Hermes Agent `0.20.5` and NeMo Relay `0.7.2` in the
+Git-ignored `.tutorial-runtime/` directory. It does not change an existing
+Hermes installation, Python environment, shell profile, or `HERMES_HOME`.
+
 The runner creates an isolated Hermes home, renders the Relay configuration,
 and uses Hermes' native, in-process Relay integration. It does not start the
 Relay CLI or a local gateway.
 
-The runner uses a constrained, ephemeral Docker container. It has no network
-access, no checkout mount, a read-only root filesystem, a 128-process limit,
-512 MiB of memory with no swap, and one CPU. It drops Linux capabilities,
-prevents privilege escalation, does not pass `NVIDIA_API_KEY` to the
-container, and does not fall back to Hermes' host-terminal default.
+The terminal tool runs in a constrained, ephemeral Docker container. This
+gives the sample task a repeatable environment without running it in the host
+checkout. The container has no network access, no checkout mount, a read-only
+root filesystem, a 128-process limit, 512 MiB of memory with no swap, and one
+CPU. It drops Linux capabilities, prevents privilege escalation, does not pass
+`NVIDIA_API_KEY` to the container, and does not fall back to Hermes'
+host-terminal default.
 
 ## Run the Tutorial
 
-Clone the repository and create the local key file:
+Clone the repository and set up the isolated tutorial runtime:
 
 ```bash
 git clone https://github.com/mnajafian-nv/nemo-relay-hermes-examples.git
 cd nemo-relay-hermes-examples
+./scripts/setup_tutorial_runtime.sh
 cp keys.env.example keys.env
 ```
 
@@ -70,7 +74,7 @@ NVIDIA_API_KEY=<your-nvidia-api-key>
 ```
 
 The file is ignored by Git and keeps the key out of shell history. Build the
-isolated tutorial image and run the task:
+tutorial image and run the task:
 
 ```bash
 ./scripts/build_tutorial_image.sh
@@ -109,7 +113,7 @@ The tutorial prints these summaries during the run. To print them again for a
 saved run, replace `<run-directory>` with the path printed by the tutorial:
 
 ```bash
-HERMES_PYTHON="$(sed -n '1s/^#!//p' "$(command -v hermes)")"
+HERMES_PYTHON=".tutorial-runtime/venv/bin/python"
 "$HERMES_PYTHON" scripts/summarize_atof.py \
   <run-directory>/atof/run.jsonl
 "$HERMES_PYTHON" scripts/summarize_atif.py \
