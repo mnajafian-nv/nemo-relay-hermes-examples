@@ -58,32 +58,42 @@ host-terminal default.
 
 ## Run the Tutorial
 
-Clone the repository and set up the isolated tutorial runtime:
+Clone the repository, then create the local runtime that contains the pinned
+Hermes and NeMo Relay versions used by this tutorial:
 
 ```bash
 git clone https://github.com/mnajafian-nv/nemo-relay-hermes-examples.git
 cd nemo-relay-hermes-examples
 ./scripts/setup_tutorial_runtime.sh
+```
+
+Create a local file for your NVIDIA Build API key:
+
+```bash
 cp keys.env.example keys.env
 ```
 
-Add the key you generated on NVIDIA Build to `keys.env`:
+Add the key to `keys.env`:
 
 ```text
 NVIDIA_API_KEY=<your-nvidia-api-key>
 ```
 
-The file is ignored by Git and keeps the key out of shell history. Build the
-tutorial image and run the task:
+The file is ignored by Git and keeps the key out of shell history.
+
+Build the container Hermes uses for the terminal-tool task:
 
 ```bash
 ./scripts/build_tutorial_image.sh
+```
+
+Run the tutorial:
+
+```bash
 ./scripts/run_tutorial.sh
 ```
 
-The runner creates an isolated Hermes home, renders a Relay configuration, and
-runs a task that asks Hermes to execute the fixed sample script in the
-tutorial container. The script prints `VALUE=42`.
+The sample script returns `VALUE=42`.
 
 **Success check:** Confirm that the output includes all of the following:
 
