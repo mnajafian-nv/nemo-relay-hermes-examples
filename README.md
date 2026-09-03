@@ -1,100 +1,92 @@
 # Tracing Agent Harness Behavior with NVIDIA NeMo Relay
 
-**Goal:** Trace a controlled Hermes Agent tool-use task with NVIDIA NeMo Relay,
-then inspect the [Agent Trajectory Observability Format
-(ATOF)](https://docs.nvidia.com/nemo/relay/latest/reference/atof-event-format)
-event trace and [Agent Trajectory Interchange Format
-(ATIF)](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atif)
-trajectory from the run.
+An agent can complete a coding task and still take an inefficient path. Repeated
+searches, failed tool calls, and unnecessary retries are difficult to spot from
+the final response alone, but they affect latency, token usage, and reliability.
 
-The included task asks Hermes to use its terminal tool to run
-[`sample.py`](sample-project/sample.py) in an isolated Docker container and
-return only `VALUE=42`. The script always prints that value, so the returned
-result confirms that Hermes completed the expected task.
+This tutorial follows one deliberately simple Hermes Agent task with NVIDIA
+[Nemotron 3.5 Lightning](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b).
+Hermes must use its terminal tool to run the included
+[`sample.py`](sample-project/sample.py) script inside an isolated Docker
+container and return the script's only output: `VALUE=42`. The value itself is
+not the point. It gives the tutorial an exact pass/fail result, so the rest of
+the walkthrough can focus on how Hermes completed the task.
 
-With the included Relay configuration, Hermes emits NeMo Relay lifecycle events
-for its model calls and terminal-tool execution. Relay exports the run as an
-ATOF trace and ATIF trajectory.
+[NVIDIA NeMo Relay](https://docs.nvidia.com/nemo/relay/latest/getting-started/about)
+is an open-source agent runtime for execution scopes, lifecycle events,
+middleware, plugins, and observability around model and tool calls. It can run
+inside an agent or through its gateway.
+
+In this tutorial, Relay runs inside Hermes through Hermes' native integration.
+We use Relay only to represent Hermes' session, turn, model, and terminal-tool
+execution as scopes and lifecycle events, then export that evidence through
+ATOF and ATIF. The tutorial does not configure Relay middleware, guardrails, or
+gateway routing.
+
+The Agent Trajectory Observability Format
+([ATOF](https://docs.nvidia.com/nemo/relay/latest/reference/atof-event-format))
+exporter writes the ordered lifecycle event stream, while the Agent Trajectory
+Interchange Format
+([ATIF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atif))
+exporter turns the same events into a step-based trajectory. Together, they
+show both the detailed execution sequence and the agent's path to the verified
+result.
 
 **In this tutorial, you will:**
 
-1. Run Hermes with the included NeMo Relay configuration.
-2. Run a fixed tool-use task with a deterministic success check.
-3. Inspect how Hermes used the model and terminal tool to complete that task by
-   comparing the raw ATOF trace with the ATIF trajectory.
-4. Use the traces and task verifier to plan a focused evaluation of a change to
-   the agent's tool-use behavior.
+1. Set up an isolated Hermes Agent and NeMo Relay environment.
+2. Run a fixed terminal-tool task and verify its exact result.
+3. Compare the ATOF trace and ATIF trajectory to understand the execution path
+   and plan a controlled change to the agent's tool-use behavior.
 
 ## How the Tutorial Runs
 
-The setup script installs Hermes Agent `0.20.5` and NeMo Relay `0.7.2` in the
-Git-ignored `.tutorial-runtime/` directory. It does not change an existing
-Hermes installation, Python environment, shell profile, or `HERMES_HOME`.
+The setup script creates a Git-ignored runtime under `.tutorial-runtime/` with
+Hermes Agent `0.20.5` and NeMo Relay `0.7.2`. The runner creates a temporary
+Hermes home and renders the Relay configuration without changing your existing
+environment.
 
-The runner creates an isolated Hermes home, renders the Relay configuration,
-and uses Hermes' native, in-process Relay integration. It does not start the
-Relay CLI or a local gateway.
-
-The terminal tool runs in a constrained, ephemeral Docker container. This
-gives the sample task a repeatable environment without running it in the host
-checkout. The container has no network access, no checkout mount, a read-only
-root filesystem, a 128-process limit, 512 MiB of memory with no swap, and one
-CPU. It drops Linux capabilities, prevents privilege escalation, does not pass
-`NVIDIA_API_KEY` to the container, and does not fall back to Hermes'
-host-terminal default.
+Hermes runs the terminal task in a constrained, ephemeral Docker container so
+the model cannot execute commands in the host checkout. The container has no
+network access or checkout mount, uses a read-only root filesystem and resource
+limits, does not receive `NVIDIA_API_KEY`, and cannot fall back to the host
+terminal.
 
 ## Run the Tutorial
 
-This tutorial runs on macOS or Linux and requires [Git](https://git-scm.com/downloads)
-and `curl`.
-
-Clone the repository and create the local runtime that contains the pinned Hermes
-and NeMo Relay versions used by this tutorial:
-
-```bash
-git clone https://github.com/mnajafian-nv/nemo-relay-hermes-examples.git
-cd nemo-relay-hermes-examples
-./scripts/setup_tutorial_runtime.sh
-```
-
-Install and start [Docker](https://docs.docker.com/get-started/get-docker/), then
-verify that it is available:
-
-```bash
-docker version
-```
-
-Build the Docker image used for the terminal-tool task:
-
-```bash
-./scripts/build_tutorial_image.sh
-```
-
-Create an API key for
+On macOS or Linux, install [Git](https://git-scm.com/downloads), `curl`, and
+[Docker](https://docs.docker.com/get-started/get-docker/). Start Docker and
+create an API key for
 [`nvidia/nemotron-3.5-lightning-30b-a3b`](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b)
 on NVIDIA Build.
 
-Copy the local key file:
+Run the following commands in order. The `keys.env` file is ignored by Git and
+keeps the key out of your shell history.
 
 ```bash
+# Clone the tutorial repository.
+git clone https://github.com/mnajafian-nv/nemo-relay-hermes-examples.git
+
+# Enter the cloned repository.
+cd nemo-relay-hermes-examples
+
+# Create the isolated Hermes Agent and NeMo Relay runtime.
+./scripts/setup_tutorial_runtime.sh
+
+# Copy the API-key template.
 cp keys.env.example keys.env
-```
 
-Add the key to `keys.env`:
+# Add NVIDIA_API_KEY to keys.env before continuing.
 
-```text
-NVIDIA_API_KEY=<your-nvidia-api-key>
-```
+# Verify that Docker is running.
+docker version
 
-The file is ignored by Git and keeps the key out of shell history.
+# Build the Docker image for the terminal-tool task.
+./scripts/build_tutorial_image.sh
 
-Run the tutorial:
-
-```bash
+# Run the tutorial and export the ATOF and ATIF traces.
 ./scripts/run_tutorial.sh
 ```
-
-The sample script returns `VALUE=42`.
 
 **Success check:** Confirm that the output includes all of the following:
 
@@ -108,20 +100,19 @@ The sample script returns `VALUE=42`.
 
 The final output prints an `Artifacts:` path. That run directory contains:
 
-- `atof/run.jsonl`, an [ATOF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atof)
-  capture of the raw, ordered lifecycle events.
-- `atif/trajectory-*.json`, an [ATIF](https://docs.nvidia.com/nemo/relay/configure-plugins/observability/atif)
-  trajectory that organizes those events into agent steps, tool calls, and
+- `atof/run.jsonl`, the raw, ordered lifecycle event stream.
+- `atif/trajectory-*.json`, the run organized into agent steps, tool calls, and
   observations.
 
-The runner prints a summary of both files. To inspect their structure before
-running the tutorial, open the minimal [example ATOF trace](examples/terminal-task.atof.jsonl),
-[example ATIF trajectory](examples/terminal-task.atif.json), and [example walkthrough](examples/README.md).
+To inspect the file structure before running the tutorial, open the minimal
+[example ATOF trace](examples/terminal-task.atof.jsonl),
+[example ATIF trajectory](examples/terminal-task.atif.json), and
+[example walkthrough](examples/README.md).
 
 ### Inspect a Saved Run
 
-The tutorial prints these summaries during the run. To print them again for a
-saved run, replace `<run-directory>` with the path printed by the tutorial:
+To summarize a saved run again, replace `<run-directory>` with the path printed
+by the tutorial:
 
 ```bash
 HERMES_PYTHON=".tutorial-runtime/venv/bin/python"
@@ -138,37 +129,33 @@ mechanical acceptance check to determine whether it succeeded.
 > Review traces before sharing them. They can contain prompts, tool arguments
 > and results, file paths, model output, and other application data.
 
-## Next Steps
-
-Use the traces from a completed tutorial run to plan one controlled agent
-change:
+## Use the Traces to Evaluate a Change
 
 1. Replace [sample-project/sample.py](sample-project/sample.py) with a safe,
    fixed task that has a mechanical success check. Update `SMOKE_QUERY` and
    `SMOKE_EXPECTED_OUTPUT` in [config/smoke.env](config/smoke.env), then
    rebuild the tutorial image.
-2. Capture several baseline runs with the same model, task fixture, execution limits, and verifier.
-3. Use the traces to identify one repeated behavior, such as a retry, repeated file read, or tool error.
-4. Change the component responsible for that behavior and run the same task and verifier again.
-5. Compare task completion first. Then use model calls, tool calls, elapsed time, and errors to explain the result.
+2. Capture several baseline runs with the same model, task fixture, execution
+   limits, and verifier.
+3. Use the traces to identify one repeated behavior, such as a retry, repeated
+   file read, or tool error.
+4. Change the component responsible for that behavior and run the same task and
+   verifier again.
+5. Compare task completion first. Then use model calls, tool calls, elapsed
+   time, and errors to explain the result.
 
 ## Troubleshooting
 
-### Authentication error
+### Authentication Error
 
 Confirm that `keys.env` contains a valid `NVIDIA_API_KEY` with access to the
 model configured in [config/smoke.env](config/smoke.env).
 
-### No trace files
-
-Do not use `--safe-mode`; it prevents Hermes from loading the tutorial's Relay
-configuration, so the tutorial does not produce ATOF or ATIF traces.
-
-### Tutorial image unavailable
+### Tutorial Image Unavailable
 
 Run `./scripts/build_tutorial_image.sh`, then rerun the tutorial.
 
-### Turn limit reached
+### Turn Limit Reached
 
 Inspect the ATOF stream to determine whether the model, tool, or task prompt
 caused the extra work.
