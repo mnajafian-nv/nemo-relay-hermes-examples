@@ -128,7 +128,7 @@ mechanical acceptance check to determine whether it succeeded.
 > Review traces before sharing them. They can contain prompts, tool arguments
 > and results, file paths, model output, and other application data.
 
-## Optional: Research a Conference and Inspect the Trace
+## Optional Exercise: Trace a Multi-Tool Research Task in Phoenix
 
 The first exercise isolates one terminal call. This follow-up shows a more
 realistic agent path across files and the web. Hermes reads a fixed
@@ -191,20 +191,17 @@ The keyless search providers are public services and can be rate-limited. The
 runner fails if Hermes does not complete a real `web_search`; it does not accept
 an answer based only on model knowledge.
 
-## Use the Traces to Evaluate a Change
+## Apply This Approach to Your Agent
 
-1. Replace [sample-project/sample.py](sample-project/sample.py) with a safe,
-   fixed task that has a mechanical success check. Update `SMOKE_QUERY` and
-   `SMOKE_EXPECTED_OUTPUT` in [config/smoke.env](config/smoke.env), then
-   rebuild the tutorial image.
-2. Capture several baseline runs with the same model, task fixture, execution
-   limits, and verifier.
-3. Use the traces to identify one repeated behavior, such as a retry, repeated
-   file read, or tool error.
-4. Change the component responsible for that behavior and run the same task and
-   verifier again.
-5. Compare task completion first. Then use model calls, tool calls, elapsed
-   time, and errors to explain the result.
+1. Define a fixed task with a mechanical success check.
+2. Run it several times with the model, prompt, tools, and execution limits held
+   constant.
+3. Use the Relay traces to identify one repeated failure or inefficiency.
+4. Make one focused change to the responsible prompt, tool configuration, or
+   harness behavior.
+5. Run the same task again under the same conditions.
+6. Compare task completion first, then use model calls, tool calls, errors, and
+   elapsed time to explain the result.
 
 ## Troubleshooting
 
