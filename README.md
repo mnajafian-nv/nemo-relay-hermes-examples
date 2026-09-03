@@ -147,8 +147,7 @@ model configured in [config/smoke.env](config/smoke.env).
 ### No trace files
 
 Do not use `--safe-mode`; it prevents Hermes from loading the tutorial's Relay
-configuration. The runner prints the output directory whenever it creates
-trace files, even if the task later fails.
+configuration, so the tutorial does not produce ATOF or ATIF traces.
 
 ### Tutorial image unavailable
 
