@@ -25,19 +25,6 @@ ATOF trace and ATIF trajectory.
 4. Use the traces and task verifier to plan a focused evaluation of a change to
    the agent's tool-use behavior.
 
-## Prerequisites
-
-Before you start, complete the following prerequisites:
-
-1. Use macOS or Linux.
-2. Install [Git](https://git-scm.com/downloads).
-3. Install and start [Docker](https://docs.docker.com/get-started/get-docker/).
-4. Open [NVIDIA Build](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b) for `nvidia/nemotron-3.5-lightning-30b-a3b`, then select **Generate API Key**.
-
-**Success check:** `docker version` returns both client and server information.
-
-For the pinned model and execution limits, see [config/smoke.env](config/smoke.env).
-
 ## How the Tutorial Runs
 
 The setup script installs Hermes Agent `0.20.5` and NeMo Relay `0.7.2` in the
@@ -58,8 +45,11 @@ host-terminal default.
 
 ## Run the Tutorial
 
-Clone the repository, then create the local runtime that contains the pinned
-Hermes and NeMo Relay versions used by this tutorial:
+This tutorial runs on macOS or Linux and requires [Git](https://git-scm.com/downloads)
+and `curl`.
+
+Clone the repository and create the local runtime that contains the pinned Hermes
+and NeMo Relay versions used by this tutorial:
 
 ```bash
 git clone https://github.com/mnajafian-nv/nemo-relay-hermes-examples.git
@@ -67,7 +57,24 @@ cd nemo-relay-hermes-examples
 ./scripts/setup_tutorial_runtime.sh
 ```
 
-Create a local file for your NVIDIA Build API key:
+Install and start [Docker](https://docs.docker.com/get-started/get-docker/), then
+verify that it is available:
+
+```bash
+docker version
+```
+
+Build the Docker image used for the terminal-tool task:
+
+```bash
+./scripts/build_tutorial_image.sh
+```
+
+Create an API key for
+[`nvidia/nemotron-3.5-lightning-30b-a3b`](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b)
+on NVIDIA Build.
+
+Copy the local key file:
 
 ```bash
 cp keys.env.example keys.env
@@ -80,12 +87,6 @@ NVIDIA_API_KEY=<your-nvidia-api-key>
 ```
 
 The file is ignored by Git and keeps the key out of shell history.
-
-Build the container Hermes uses for the terminal-tool task:
-
-```bash
-./scripts/build_tutorial_image.sh
-```
 
 Run the tutorial:
 
