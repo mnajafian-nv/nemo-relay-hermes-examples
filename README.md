@@ -13,15 +13,14 @@ not the point. It gives the tutorial an exact pass/fail result, so the rest of
 the walkthrough can focus on how Hermes completed the task.
 
 [NVIDIA NeMo Relay](https://docs.nvidia.com/nemo/relay/latest/getting-started/about)
-is an open-source agent runtime for execution scopes, lifecycle events,
-middleware, plugins, and observability around model and tool calls. It can run
-inside an agent or through its gateway.
+is an open-source, multi-language agent runtime framework that provides a
+shared execution model for scopes, managed tool and LLM calls, asynchronous
+middleware, plugin lifecycles, adaptive caching, and lifecycle observability.
 
 In this tutorial, Relay runs inside Hermes through Hermes' native integration.
-We use Relay only to represent Hermes' session, turn, model, and terminal-tool
-execution as scopes and lifecycle events, then export that evidence through
-ATOF and ATIF. The tutorial does not configure Relay middleware, guardrails, or
-gateway routing.
+It represents the session, turn, model, and terminal-tool lifecycles as ATOF
+events and an ATIF trajectory. The tutorial does not configure Relay
+middleware, guardrails, or gateway routing.
 
 The Agent Trajectory Observability Format
 ([ATOF](https://docs.nvidia.com/nemo/relay/latest/reference/atof-event-format))
