@@ -50,7 +50,33 @@ class RenderRelayConfigTests(unittest.TestCase):
 
         self.assertIn('model_name = "nvidia/test-model"', config)
         self.assertIn('filename = "run.jsonl"', config)
+        self.assertNotIn("[components.config.opentelemetry]", config)
         self.assertNotIn("__RELAY_OUTPUT_ROOT__", config)
+
+    def test_render_config_can_add_a_phoenix_openinference_endpoint(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            config = render_relay_config.render_config(
+                Path(directory),
+                "nvidia/test-model",
+                openinference_endpoint="http://127.0.0.1:6006/v1/traces",
+                openinference_project="tutorial-run",
+            )
+
+        self.assertIn("[components.config.opentelemetry]", config)
+        self.assertIn('type = "openinference"', config)
+        self.assertIn('endpoint = "http://127.0.0.1:6006/v1/traces"', config)
+        self.assertIn("timeout_millis = 30000", config)
+        self.assertIn("scheduled_delay_millis = 600000", config)
+        self.assertIn('"openinference.project.name" = "tutorial-run"', config)
+
+    def test_render_config_requires_complete_openinference_configuration(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError, "openinference_project"):
+                render_relay_config.render_config(
+                    Path(directory),
+                    "nvidia/test-model",
+                    openinference_endpoint="http://127.0.0.1:6006/v1/traces",
+                )
 
     def test_main_rejects_empty_model_name(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -65,6 +65,7 @@ class SummarizeAtofTests(unittest.TestCase):
                 require_tool=True,
                 require_no_tool_errors=True,
                 required_tool_command=None,
+                required_tool_names=[],
             )
 
     def test_validate_trace_accepts_required_tool_command(self) -> None:
@@ -77,6 +78,7 @@ class SummarizeAtofTests(unittest.TestCase):
             require_tool=True,
             require_no_tool_errors=True,
             required_tool_command="sample.py",
+            required_tool_names=[],
         )
 
     def test_validate_trace_requirements_rejects_missing_tool_call(self) -> None:
@@ -92,6 +94,7 @@ class SummarizeAtofTests(unittest.TestCase):
                 require_tool=True,
                 require_no_tool_errors=True,
                 required_tool_command=None,
+                required_tool_names=[],
             )
 
     def test_validate_trace_requirements_rejects_tool_errors(self) -> None:
@@ -107,6 +110,7 @@ class SummarizeAtofTests(unittest.TestCase):
                 require_tool=True,
                 require_no_tool_errors=True,
                 required_tool_command=None,
+                required_tool_names=[],
             )
 
     def test_validate_trace_rejects_missing_required_tool_command(self) -> None:
@@ -131,4 +135,132 @@ class SummarizeAtofTests(unittest.TestCase):
                 require_tool=True,
                 require_no_tool_errors=True,
                 required_tool_command="sample.py",
+                required_tool_names=[],
+            )
+
+    def test_validate_trace_accepts_required_tool_name(self) -> None:
+        events = [
+            {
+                "kind": "scope",
+                "category": "tool",
+                "scope_category": "start",
+                "uuid": "web-search",
+                "name": "web_search",
+            },
+            {
+                "kind": "scope",
+                "category": "tool",
+                "scope_category": "end",
+                "uuid": "web-search",
+                "metadata": {"otel.status_code": "OK"},
+            },
+        ]
+
+        summarize_atof.validate_trace_requirements(
+            events,
+            {
+                "completed_llm_scopes": 1,
+                "tool_calls": 1,
+                "tool_errors": 0,
+            },
+            require_llm=True,
+            require_tool=True,
+            require_no_tool_errors=True,
+            required_tool_command=None,
+            required_tool_names=["web_search"],
+        )
+
+    def test_validate_trace_rejects_missing_required_tool_name(self) -> None:
+        events = [
+            {
+                "kind": "scope",
+                "category": "tool",
+                "scope_category": "start",
+                "uuid": "terminal",
+                "name": "terminal",
+            },
+            {
+                "kind": "scope",
+                "category": "tool",
+                "scope_category": "end",
+                "uuid": "terminal",
+                "metadata": {"otel.status_code": "OK"},
+            },
+        ]
+
+        with self.assertRaisesRegex(ValueError, "web_search"):
+            summarize_atof.validate_trace_requirements(
+                events,
+                {
+                    "completed_llm_scopes": 1,
+                    "tool_calls": 1,
+                    "tool_errors": 0,
+                },
+                require_llm=True,
+                require_tool=True,
+                require_no_tool_errors=True,
+                required_tool_command=None,
+                required_tool_names=["web_search"],
+            )
+
+    def test_validate_trace_accepts_multiple_required_tool_names(self) -> None:
+        events = []
+        for name in ("read_file", "web_search", "write_file"):
+            events.extend(
+                [
+                    {
+                        "kind": "scope",
+                        "category": "tool",
+                        "scope_category": "start",
+                        "uuid": name,
+                        "name": name,
+                    },
+                    {
+                        "kind": "scope",
+                        "category": "tool",
+                        "scope_category": "end",
+                        "uuid": name,
+                        "metadata": {"otel.status_code": "OK"},
+                    },
+                ]
+            )
+
+        summarize_atof.validate_trace_requirements(
+            events,
+            {
+                "completed_llm_scopes": 1,
+                "tool_calls": 3,
+                "tool_errors": 0,
+            },
+            require_llm=True,
+            require_tool=True,
+            require_no_tool_errors=True,
+            required_tool_command=None,
+            required_tool_names=["read_file", "web_search", "write_file"],
+        )
+
+    def test_validate_trace_rejects_required_tool_without_matching_end(self) -> None:
+        events = [
+            {
+                "kind": "scope",
+                "category": "tool",
+                "scope_category": "start",
+                "uuid": "web-search",
+                "name": "web_search",
+            }
+        ]
+
+        with self.assertRaisesRegex(ValueError, "successful tool named 'web_search'"):
+            summarize_atof.validate_trace_requirements(
+                events,
+                {
+                    "completed_llm_scopes": 1,
+                    "tool_calls": 1,
+                    "tool_errors": 0,
+                },
+                require_llm=True,
+                require_tool=True,
+                require_no_tool_errors=True,
+                required_tool_command=None,
+                required_tool_names=["web_search"],
             )

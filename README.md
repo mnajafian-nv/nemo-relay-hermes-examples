@@ -128,6 +128,69 @@ mechanical acceptance check to determine whether it succeeded.
 > Review traces before sharing them. They can contain prompts, tool arguments
 > and results, file paths, model output, and other application data.
 
+## Optional: Research a Conference and Inspect the Trace
+
+The first exercise isolates one terminal call. This follow-up shows a more
+realistic agent path across files and the web. Hermes reads a fixed
+[conference travel record](conference-task/travel-record.md), identifies the
+event that matches every constraint, verifies it on the official conference
+website, and saves a verification report.
+
+Relay exports the run as ATOF, ATIF, and an
+[OpenInference trace](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/openinference)
+for [Arize Phoenix](https://arize.com/docs/phoenix). Complete the first exercise
+before running this one so the isolated Hermes runtime and tutorial Docker image
+are available.
+
+```bash
+# Research the conference and inspect the file, web, and model path in Phoenix.
+./scripts/run_conference_research_with_phoenix.sh
+```
+
+Hermes uses its built-in keyless web search, so no Tavily key or other search
+credential is required. The runner verifies all of the following:
+
+- The final answer identifies the expected conference.
+- The saved verification report contains the dates, location, and official
+  source.
+- The ATOF trace contains successful `read_file`, `web_search`, `web_extract`,
+  and `write_file` calls.
+- ATIF contains the trajectory, and Phoenix receives the corresponding model
+  and tool spans.
+
+The script prints a Phoenix URL and saves the response, verification report,
+ATOF events, and ATIF trajectory under `artifacts/conference-research/`. The
+fixed input is mounted read-only, a separate output directory is mounted
+read/write, writes are restricted to `/output`, and your API key is not passed
+to the tool container.
+
+Open the printed Phoenix URL, select the project named in the verification
+output, and expand its trace. Follow the `read_file`, `web_search`,
+`web_extract`, and `write_file` spans to see how Hermes moved from the travel
+record to the saved report. Compare that view with the ATOF and ATIF summaries
+printed by the runner.
+
+Phoenix uses port `6006` by default. If that port is unavailable, choose another
+local port:
+
+```bash
+PHOENIX_UI_PORT=6007 ./scripts/run_conference_research_with_phoenix.sh
+```
+
+Phoenix data remains in the tutorial container until you remove it:
+
+```bash
+# Stop Phoenix and delete the tutorial container and its local trace data.
+./scripts/stop_phoenix.sh
+```
+
+If you selected another port, pass the same value when removing the container,
+for example `PHOENIX_UI_PORT=6007 ./scripts/stop_phoenix.sh`.
+
+The keyless search providers are public services and can be rate-limited. The
+runner fails if Hermes does not complete a real `web_search`; it does not accept
+an answer based only on model knowledge.
+
 ## Use the Traces to Evaluate a Change
 
 1. Replace [sample-project/sample.py](sample-project/sample.py) with a safe,

@@ -60,15 +60,35 @@ def summarize(events: list[Event]) -> dict[str, int]:
     }
 
 
-def has_tool_command(events: list[Event], required_command: str) -> bool:
-    for event in events:
-        if not is_scope(event, "tool", "start"):
-            continue
+def successful_tool_start_events(events: list[Event]) -> list[Event]:
+    successful_uuids = {
+        event.get("uuid")
+        for event in events
+        if is_scope(event, "tool", "end")
+        and event.get("uuid") is not None
+        and not is_error_status(event)
+    }
+    return [
+        event
+        for event in events
+        if is_scope(event, "tool", "start") and event.get("uuid") in successful_uuids
+    ]
+
+
+def has_successful_tool_command(events: list[Event], required_command: str) -> bool:
+    for event in successful_tool_start_events(events):
         data = event.get("data")
         if isinstance(data, dict) and isinstance(data.get("command"), str):
             if required_command in data["command"]:
                 return True
     return False
+
+
+def has_successful_tool_name(events: list[Event], required_name: str) -> bool:
+    return any(
+        event.get("name") == required_name
+        for event in successful_tool_start_events(events)
+    )
 
 
 def validate_trace_requirements(
@@ -79,6 +99,7 @@ def validate_trace_requirements(
     require_tool: bool,
     require_no_tool_errors: bool,
     required_tool_command: str | None,
+    required_tool_names: list[str],
 ) -> None:
     missing: list[str] = []
     if require_llm and summary["completed_llm_scopes"] == 0:
@@ -87,8 +108,13 @@ def validate_trace_requirements(
         missing.append("tool call")
     if require_no_tool_errors and summary["tool_errors"] != 0:
         missing.append("error-free tool calls")
-    if required_tool_command and not has_tool_command(events, required_tool_command):
-        missing.append(f"tool command containing {required_tool_command!r}")
+    if required_tool_command and not has_successful_tool_command(
+        events, required_tool_command
+    ):
+        missing.append(f"successful tool command containing {required_tool_command!r}")
+    for required_tool_name in required_tool_names:
+        if not has_successful_tool_name(events, required_tool_name):
+            missing.append(f"successful tool named {required_tool_name!r}")
     if missing:
         raise ValueError(f"trace does not meet tutorial requirements: {', '.join(missing)}")
 
@@ -113,7 +139,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     )
     parser.add_argument(
         "--require-tool-command",
-        help="Fail when no tool-start event contains this command text",
+        help="Fail when no successfully completed tool call contains this command text",
+    )
+    parser.add_argument(
+        "--require-tool-name",
+        action="append",
+        default=[],
+        help="Fail when no successfully completed tool call has this name",
     )
     return parser.parse_args(argv)
 
@@ -130,6 +162,7 @@ def main(argv: list[str] | None = None) -> int:
             require_tool=args.require_tool_call,
             require_no_tool_errors=args.require_no_tool_errors,
             required_tool_command=args.require_tool_command,
+            required_tool_names=args.require_tool_name,
         )
     except (OSError, TypeError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
