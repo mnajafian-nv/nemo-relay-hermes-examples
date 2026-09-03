@@ -142,6 +142,11 @@ for [Arize Phoenix](https://arize.com/docs/phoenix). Complete the first exercise
 before running this one so the isolated Hermes runtime and tutorial Docker image
 are available.
 
+No separate Phoenix installation is required. The exercise downloads the
+pinned Phoenix container image if needed and starts it locally. If port `6006`
+is already in use, use the alternate-port command below. The script does not
+stop or replace the existing service.
+
 ```bash
 # Research the conference and inspect the file, web, and model path in Phoenix.
 ./scripts/run_conference_research_with_phoenix.sh
