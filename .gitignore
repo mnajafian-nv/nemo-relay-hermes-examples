@@ -1,6 +1,8 @@
 keys.env
 .venv/
 .tutorial-runtime/
+.local/
+model-profile.env
 __pycache__/
 .pytest_cache/
 artifacts/

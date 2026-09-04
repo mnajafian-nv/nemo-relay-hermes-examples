@@ -33,27 +33,20 @@ result.
 
 **In this tutorial, you will:**
 
-1. Set up an isolated Hermes Agent and NeMo Relay environment.
-2. Run a fixed terminal-tool task, verify its result, and inspect its ATOF and
+1. Set up an isolated Hermes Agent runtime with its bundled NeMo Relay
+   integration.
+2. Run a fixed terminal-tool task, verify the result, and inspect the ATOF and
    ATIF traces.
-3. Optionally trace a file-and-web research task in Phoenix and inspect its tool
-   calls, model calls, duration, token usage, and estimated cost.
-4. Learn how to use those traces to evaluate a controlled agent change.
-
-## How the Tutorial Runs
-
-The setup script creates a Git-ignored runtime under `.tutorial-runtime/` with
-Hermes Agent `0.20.5` and NeMo Relay `0.7.2`. The runner creates a temporary
-Hermes home and renders the Relay configuration without changing your existing
-environment.
-
-Hermes runs the terminal task in a constrained, ephemeral Docker container so
-the model cannot execute commands in the host checkout. The container has no
-network access or checkout mount, uses a read-only root filesystem and resource
-limits, does not receive `NVIDIA_API_KEY`, and cannot fall back to the host
-terminal.
+3. Optionally run a file-and-web research task and inspect its model calls, tool
+   calls, duration, token usage, and available cost estimates in Phoenix.
+4. Use trace evidence and a task verifier to evaluate a controlled agent
+   change.
 
 ## Run the Tutorial
+
+The setup script installs Hermes Agent `0.20.5` and its bundled NeMo Relay
+`0.7.2` in `.tutorial-runtime/` without changing your existing Hermes
+installation.
 
 On macOS or Linux, install [Git](https://git-scm.com/downloads), `curl`, and
 [Docker](https://docs.docker.com/get-started/get-docker/). Start Docker and
@@ -97,6 +90,12 @@ docker version
 - An ATIF summary with the agent, model, and trajectory step count
 - `tool errors: 0`
 - An `Artifacts:` path under `artifacts/runs/`
+
+### Why the Tutorial Uses Docker
+
+Hermes can execute terminal commands, so this tutorial runs them in an isolated
+Docker container instead of on your host. The container cannot access the
+network, repository checkout, or NVIDIA API key.
 
 ## Review the Run
 
@@ -146,20 +145,20 @@ for [Arize Phoenix](https://arize.com/docs/phoenix). Complete the setup steps
 through `./scripts/build_tutorial_image.sh` before running this exercise. You do
 not need to run the first task.
 
-The Phoenix screenshots below use Claude Sonnet 5. To reproduce this run, add
-an API key authorized for the model in
-[config/conference_research.env](config/conference_research.env) to `keys.env`
-as `NVIDIA_INFERENCE_API_KEY`. To try another model, update its model, endpoint,
-API mode, and expected LLM span in that configuration file, then run the
-exercise and inspect the new trace in Phoenix.
+By default, this exercise reuses the Nemotron model and `NVIDIA_API_KEY` from
+the first exercise. No additional model configuration or credential is needed.
 
 No separate Phoenix installation is required. The exercise downloads the
 pinned Phoenix container image if needed and starts it locally. If port `6006`
 is already in use, use the alternate-port command below. The script does not
 stop or replace the existing service.
 
+### Run the Research Task with Nemotron
+
+Run the research task with the same Nemotron model and NVIDIA Build key used by
+the first exercise:
+
 ```bash
-# Research the conference and inspect the file, web, and model path in Phoenix.
 ./scripts/run_conference_research_with_phoenix.sh
 ```
 
@@ -171,15 +170,14 @@ credential is required. The runner verifies all of the following:
   source.
 - The ATOF trace contains successful `read_file`, `web_search`, `web_extract`,
   and `write_file` calls.
-- ATIF contains the trajectory, and Phoenix receives the corresponding model
-  and tool spans.
-- Phoenix reports positive token and estimated-cost totals for the trace.
+- ATIF contains the trajectory.
+- Phoenix receives the corresponding model and tool spans.
 
 The script prints a Phoenix URL and saves the response, verification report,
-ATOF events, and ATIF trajectory under `artifacts/conference-research/`. The
-fixed input is mounted read-only, a separate output directory is mounted
-read/write, writes are restricted to `/output`, and your API key is not passed
-to the tool container.
+ATOF events, and ATIF trajectory under
+`artifacts/conference-research/nemotron/`. The fixed input is mounted
+read-only, a separate output directory is mounted read/write, writes are
+restricted to `/output`, and your API key is not passed to the tool container.
 
 Open the printed Phoenix URL, select the project named in the verification
 output, and expand its trace. Follow the `read_file`, `web_search`,
@@ -187,15 +185,42 @@ output, and expand its trace. Follow the `read_file`, `web_search`,
 record to the saved report. Compare that view with the ATOF and ATIF summaries
 printed by the runner.
 
-### Phoenix Walkthrough
+### Compare Another Model
 
-The expanded trace view shows the complete execution path with model and tool
-spans, per-span durations, token counts, and the total estimated cost. The
-verified run below completed the research task with five model calls and five
-tool calls, with no tool errors. Phoenix reported 60,059 tokens and an estimated
-run cost of `$0.053960`.
+To compare another model without changing the task or verifier, copy the model
+profile template:
 
-![Phoenix trace tree with model, file, and web spans](screenshots/phoenix-trace-tree.png)
+```bash
+cp config/model_profile.env.example model-profile.env
+```
+
+Update `model-profile.env` with the model, endpoint, API mode, and credential
+variable supplied by your provider. Add the matching credential to `keys.env`,
+then run:
+
+```bash
+./scripts/run_conference_research_with_phoenix.sh \
+  --model-profile model-profile.env
+```
+
+The runner supports the `chat_completions`, `anthropic_messages`, and
+`codex_responses` API modes provided by Hermes. The selected endpoint must
+support tool use. Both runs use the same task, tools, execution limits, and
+verifier. Compare task completion first, then inspect model and tool paths,
+duration, token usage, and any available cost estimates in Phoenix.
+
+### Example Comparison with Claude Sonnet 5
+
+The retained screenshots show the same task run with Claude Sonnet 5 through a
+separately configured compatible endpoint. The run completed with five model
+calls and five tool calls and no tool errors. Phoenix reported 60,059 tokens
+and an estimated total cost of `$0.053960`. Cost estimates depend on whether
+the selected model has pricing metadata available to the telemetry backend.
+
+The trace tree shows the total estimated cost above the span list and token
+counts beside the model spans.
+
+![Phoenix trace tree showing total cost, token counts, and model, file, and web spans](screenshots/phoenix-trace-tree.png)
 
 Select a tool span to inspect the request and result that moved the agent from
 the task constraints to the verified answer.
@@ -249,9 +274,10 @@ Nemotron model configured in [config/smoke.env](config/smoke.env).
 
 ### Optional Phoenix Exercise Authentication Fails
 
-Confirm that `keys.env` contains a valid `NVIDIA_INFERENCE_API_KEY` for the
-model and endpoint configured in
-[config/conference_research.env](config/conference_research.env).
+The default run uses `NVIDIA_API_KEY`. A comparison run uses the credential
+variable named by `MODEL_PROFILE_API_KEY_ENV` in `model-profile.env`. Confirm
+that `keys.env` contains the expected variable and that the key can access the
+configured model and endpoint.
 
 ### Tutorial Image Is Unavailable
 

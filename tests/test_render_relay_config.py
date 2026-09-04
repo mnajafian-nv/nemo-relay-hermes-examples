@@ -49,27 +49,19 @@ class RenderRelayConfigTests(unittest.TestCase):
         self.assertIn("WORKDIR /opt/nemo-relay-hermes-tutorial", dockerfile)
         self.assertIn("COPY sample-project/sample.py ./sample.py", dockerfile)
 
-    def test_optional_conference_exercise_uses_internal_inference(self) -> None:
+    def test_comparison_profile_example_defines_required_fields(self) -> None:
         values: dict[str, str] = {}
         for line in (
-            REPOSITORY_ROOT / "config" / "conference_research.env"
+            REPOSITORY_ROOT / "config" / "model_profile.env.example"
         ).read_text(encoding="utf-8").splitlines():
             if "=" not in line or line.lstrip().startswith("#"):
                 continue
             key, value = line.split("=", maxsplit=1)
             values[key] = value.strip().strip("'\"")
 
-        self.assertEqual(
-            values["CONFERENCE_RESEARCH_MODEL"],
-            "aws/anthropic/bedrock-claude-sonnet-5",
-        )
-        self.assertEqual(
-            values["CONFERENCE_RESEARCH_BASE_URL"],
-            "https://inference-api.nvidia.com",
-        )
-        self.assertEqual(
-            values["CONFERENCE_RESEARCH_API_MODE"], "anthropic_messages"
-        )
+        self.assertEqual(values["MODEL_PROFILE_NAME"], "comparison")
+        self.assertEqual(values["MODEL_PROFILE_API_MODE"], "chat_completions")
+        self.assertEqual(values["MODEL_PROFILE_API_KEY_ENV"], "COMPARISON_API_KEY")
 
     def test_render_config_uses_absolute_output_paths(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
