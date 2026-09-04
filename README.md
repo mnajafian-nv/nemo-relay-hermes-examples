@@ -33,9 +33,11 @@ result.
 **In this tutorial, you will:**
 
 1. Set up an isolated Hermes Agent and NeMo Relay environment.
-2. Run a fixed terminal-tool task and verify its exact result.
-3. Compare the ATOF trace and ATIF trajectory to understand the execution path
-   and plan a controlled change to the agent's tool-use behavior.
+2. Run a fixed terminal-tool task, verify its result, and inspect its ATOF and
+   ATIF traces.
+3. Optionally trace a file-and-web research task in Phoenix and inspect its tool
+   calls, model calls, duration, token usage, and estimated cost.
+4. Learn how to use those traces to evaluate a controlled agent change.
 
 ## How the Tutorial Runs
 
@@ -55,8 +57,9 @@ terminal.
 On macOS or Linux, install [Git](https://git-scm.com/downloads), `curl`, and
 [Docker](https://docs.docker.com/get-started/get-docker/). Start Docker and
 obtain an NVIDIA Inference API key authorized for
-`aws/anthropic/bedrock-claude-sonnet-5`. This is an NVIDIA-hosted model endpoint;
-an NVIDIA Build API key does not authenticate this configuration.
+`aws/anthropic/bedrock-claude-sonnet-5`. This configuration requires access to
+NVIDIA's internal inference service. An NVIDIA Build API key does not
+authenticate this endpoint.
 
 Run the following commands in order. The `keys.env` file is ignored by Git and
 keeps the key out of your shell history.
@@ -102,7 +105,7 @@ The final output prints an `Artifacts:` path. That run directory contains:
 - `atif/trajectory-*.json`, the run organized into agent steps, tool calls, and
   observations.
 
-To inspect the file structure before running the tutorial, open the minimal
+For a compact comparison of the two formats, review the minimal
 [example ATOF trace](examples/terminal-task.atof.jsonl),
 [example ATIF trajectory](examples/terminal-task.atif.json), and
 [example walkthrough](examples/README.md).
@@ -121,7 +124,7 @@ HERMES_PYTHON=".tutorial-runtime/venv/bin/python"
 ```
 
 Treat the trace as diagnostic evidence, not the evaluator. Use the task's
-mechanical acceptance check to determine whether it succeeded.
+exact success check to determine whether it succeeded.
 
 > [!CAUTION]
 > Review traces before sharing them. They can contain prompts, tool arguments
@@ -137,9 +140,9 @@ website, and saves a verification report.
 
 Relay exports the run as ATOF, ATIF, and an
 [OpenInference trace](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/openinference)
-for [Arize Phoenix](https://arize.com/docs/phoenix). Complete the first exercise
-before running this one so the isolated Hermes runtime and tutorial Docker image
-are available.
+for [Arize Phoenix](https://arize.com/docs/phoenix). Complete the setup steps
+through `./scripts/build_tutorial_image.sh` before running this exercise. You do
+not need to run the first task.
 
 No separate Phoenix installation is required. The exercise downloads the
 pinned Phoenix container image if needed and starts it locally. If port `6006`
@@ -161,7 +164,7 @@ credential is required. The runner verifies all of the following:
   and `write_file` calls.
 - ATIF contains the trajectory, and Phoenix receives the corresponding model
   and tool spans.
-- Phoenix calculates positive token and estimated-cost totals for the trace.
+- Phoenix reports positive token and estimated-cost totals for the trace.
 
 The script prints a Phoenix URL and saves the response, verification report,
 ATOF events, and ATIF trajectory under `artifacts/conference-research/`. The
@@ -179,9 +182,9 @@ printed by the runner.
 
 The expanded trace view shows the complete execution path with model and tool
 spans, per-span durations, token counts, and the total estimated cost. The
-verified run below completed the research task with five model calls, five tool
-calls, no tool errors, 60,059 priced tokens, and an estimated cost of
-`$0.053960`.
+verified run below completed the research task with five model calls and five
+tool calls, with no tool errors. Phoenix reported 60,059 tokens and an estimated
+run cost of `$0.053960`.
 
 ![Phoenix trace tree with model, file, and web spans](screenshots/phoenix-trace-tree.png)
 
@@ -218,7 +221,7 @@ an answer based only on model knowledge.
 
 ## Apply This Approach to Your Agent
 
-1. Define a fixed task with a mechanical success check.
+1. Define a fixed task with an exact success check.
 2. Run it several times with the model, prompt, tools, and execution limits held
    constant.
 3. Use the Relay traces to identify one repeated failure or inefficiency.
@@ -230,20 +233,20 @@ an answer based only on model knowledge.
 
 ## Troubleshooting
 
-### Authentication Error
+### Authentication Fails
 
 Confirm that `keys.env` contains a valid `NVIDIA_API_KEY` with access to the
 model configured in [config/smoke.env](config/smoke.env).
 
-### Tutorial Image Unavailable
+### Tutorial Image Is Unavailable
 
 Run `./scripts/build_tutorial_image.sh`, then rerun the tutorial.
 
-### Turn Limit Reached
+### Hermes Reaches the Turn Limit
 
 Inspect the ATOF stream to determine whether the model, tool, or task prompt
 caused the extra work.
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE).
+This repository is licensed under the [Apache License 2.0](LICENSE).
