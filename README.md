@@ -4,13 +4,12 @@ An agent can complete a coding task and still take an inefficient path. Repeated
 searches, failed tool calls, and unnecessary retries are difficult to spot from
 the final response alone, but they affect latency, token usage, and reliability.
 
-This tutorial follows one deliberately simple Hermes Agent task with NVIDIA
-[Nemotron 3.5 Lightning](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b).
-Hermes must use its terminal tool to run the included
-[`sample.py`](sample-project/sample.py) script inside an isolated Docker
-container and return the script's only output: `VALUE=42`. The value itself is
-not the point. It gives the tutorial an exact pass/fail result, so the rest of
-the walkthrough can focus on how Hermes completed the task.
+This tutorial follows one deliberately simple Hermes Agent task with Claude
+Sonnet 5 served through NVIDIA Inference. Hermes must use its terminal tool to
+run the included [`sample.py`](sample-project/sample.py) script inside an
+isolated Docker container and return the script's only output: `VALUE=42`. The
+value itself is not the point. It gives the tutorial an exact pass/fail result,
+so the rest of the walkthrough can focus on how Hermes completed the task.
 
 [NVIDIA NeMo Relay](https://docs.nvidia.com/nemo/relay/latest/getting-started/about)
 is an open-source, multi-language agent runtime framework that provides a
@@ -55,9 +54,9 @@ terminal.
 
 On macOS or Linux, install [Git](https://git-scm.com/downloads), `curl`, and
 [Docker](https://docs.docker.com/get-started/get-docker/). Start Docker and
-create an API key for
-[`nvidia/nemotron-3.5-lightning-30b-a3b`](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b)
-on NVIDIA Build.
+obtain an NVIDIA Inference API key authorized for
+`aws/anthropic/bedrock-claude-sonnet-5`. This is an NVIDIA-hosted model endpoint;
+an NVIDIA Build API key does not authenticate this configuration.
 
 Run the following commands in order. The `keys.env` file is ignored by Git and
 keeps the key out of your shell history.
@@ -162,6 +161,7 @@ credential is required. The runner verifies all of the following:
   and `write_file` calls.
 - ATIF contains the trajectory, and Phoenix receives the corresponding model
   and tool spans.
+- Phoenix calculates positive token and estimated-cost totals for the trace.
 
 The script prints a Phoenix URL and saves the response, verification report,
 ATOF events, and ATIF trajectory under `artifacts/conference-research/`. The
@@ -174,6 +174,21 @@ output, and expand its trace. Follow the `read_file`, `web_search`,
 `web_extract`, and `write_file` spans to see how Hermes moved from the travel
 record to the saved report. Compare that view with the ATOF and ATIF summaries
 printed by the runner.
+
+### Phoenix Walkthrough
+
+The expanded trace view shows the complete execution path with model and tool
+spans, per-span durations, token counts, and the total estimated cost. The
+verified run below completed the research task with five model calls, five tool
+calls, no tool errors, 59,704 priced tokens, and an estimated cost of
+`$0.042031`.
+
+![Phoenix trace tree with model, file, and web spans](screenshots/phoenix-trace-tree.png)
+
+Select a tool span to inspect the request and result that moved the agent from
+the task constraints to the verified answer.
+
+![Phoenix web-search span with query and results](screenshots/phoenix-web-search-span.png)
 
 Phoenix uses port `6006` by default. If that port is unavailable, choose another
 local port:

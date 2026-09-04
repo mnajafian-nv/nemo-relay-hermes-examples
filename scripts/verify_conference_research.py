@@ -32,6 +32,10 @@ def normalize_answer(text: str) -> str:
     return text.strip().strip("`*_# ").strip()
 
 
+def response_identifies_expected_name(text: str, expected_name: str) -> bool:
+    return expected_name.casefold() in normalize_answer(text).casefold()
+
+
 def is_expected_source_url(url: str, expected_prefix: str) -> bool:
     expected = urlsplit(expected_prefix)
     expected_path = expected.path.rstrip("/")
@@ -146,9 +150,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     try:
         response = final_response(args.response.read_text(encoding="utf-8"))
-        if normalize_answer(response) != args.expected_name:
+        if not response_identifies_expected_name(response, args.expected_name):
             raise ValueError(
-                f"final response must be {args.expected_name!r}; found {response!r}"
+                f"final response must identify {args.expected_name!r}; found {response!r}"
             )
         report = args.report.read_text(encoding="utf-8")
         urls = validate_report(

@@ -24,7 +24,7 @@ trap cleanup_hermes_home EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM HUP
 
-if [[ -f "$repo_root/keys.env" ]]; then
+if [[ -z "${NVIDIA_API_KEY:-}" && -f "$repo_root/keys.env" ]]; then
   set -a
   # shellcheck disable=SC1090,SC1091
   source "$repo_root/keys.env"
@@ -68,7 +68,21 @@ export HERMES_HOME="$hermes_home"
 export HERMES_NEMO_RELAY_PLUGINS_TOML="$plugins_path"
 export NVIDIA_BASE_URL
 
-cat >"$hermes_home/config.yaml" <<'YAML'
+cat >"$hermes_home/config.yaml" <<YAML
+model:
+  provider: "nvidia"
+  default: "$model"
+  base_url: "$NVIDIA_BASE_URL"
+  api_mode: "$NVIDIA_API_MODE"
+
+providers:
+  nvidia:
+    name: "NVIDIA Inference"
+    base_url: "$NVIDIA_BASE_URL"
+    key_env: "NVIDIA_API_KEY"
+    api_mode: "$NVIDIA_API_MODE"
+    default_model: "$model"
+
 display:
   show_reasoning: false
 web:
@@ -149,11 +163,12 @@ printf '\nATIF summary:\n'
   --api-url "$PHOENIX_UI_URL" \
   --project-name "$project_name" \
   --require-span-name hermes.session \
-  --require-span-name openai.chat_completions \
+  --require-span-name anthropic.messages \
   --require-span-name read_file \
   --require-span-name web_search \
   --require-span-name web_extract \
   --require-span-name write_file \
+  --require-positive-cost-summary \
   --timeout-seconds 30
 
 run_succeeded=true

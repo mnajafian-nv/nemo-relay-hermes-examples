@@ -34,6 +34,10 @@ class RenderRelayConfigTests(unittest.TestCase):
         )
         self.assertEqual(values["HERMES_VERSION"], "0.20.5")
         self.assertEqual(values["NEMO_RELAY_VERSION"], "0.7.2")
+        self.assertEqual(
+            values["SMOKE_MODEL"], "aws/anthropic/bedrock-claude-sonnet-5"
+        )
+        self.assertEqual(values["NVIDIA_API_MODE"], "anthropic_messages")
         self.assertEqual(values["SMOKE_TERMINAL_CWD"], "/root")
         self.assertIn(
             "/opt/nemo-relay-hermes-tutorial/sample.py", values["SMOKE_QUERY"]
