@@ -1,0 +1,19 @@
+{
+  "task": {
+    "name": "conference research",
+    "description": "Identify the conference that matches the supplied travel constraints, verify it against an official source, and write the result to a file."
+  },
+  "model": "claude-sonnet-5",
+  "verifier": {
+    "status": "passed",
+    "expected_result": "COLT 2026"
+  },
+  "execution": {
+    "measurement_source": "Phoenix",
+    "model_calls": 5,
+    "tool_calls": 5,
+    "tool_errors": 0,
+    "total_tokens": 60059,
+    "estimated_cost_usd": 0.05396
+  }
+}

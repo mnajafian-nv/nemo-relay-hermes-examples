@@ -213,10 +213,12 @@ duration, token usage, and any available cost estimates in Phoenix.
 ### Example Comparison with Claude Sonnet 5
 
 The retained screenshots show the same task run with Claude Sonnet 5 through a
-separately configured compatible endpoint. The run completed with five model
-calls and five tool calls and no tool errors. Phoenix reported 60,059 tokens
-and an estimated total cost of `$0.053960`. Cost estimates depend on whether
-the selected model has pricing metadata available to the telemetry backend.
+separately configured compatible endpoint. The
+[sanitized result summary](results/conference-research-claude-sonnet-5.json)
+records the verifier result and the measurements reported by Phoenix: five
+model calls, five tool calls, no tool errors, 60,059 tokens, and an estimated
+total cost of `$0.053960`. Cost estimates depend on whether the selected model
+has pricing metadata available to the telemetry backend.
 
 The trace tree shows the total estimated cost above the span list and token
 counts beside the model spans.
