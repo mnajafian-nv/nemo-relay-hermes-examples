@@ -131,7 +131,7 @@ exact success check to determine whether it succeeded.
 > Review traces before sharing them. They can contain prompts, tool arguments
 > and results, file paths, model output, and other application data.
 
-## Optional Exercise: Trace a Multi-Tool Research Task in Phoenix
+## Inspect a Multi-Tool Hermes Trace in Phoenix
 
 The first exercise isolates one terminal-tool task. This follow-up shows a more
 realistic agent path across files and the web. Hermes reads a fixed
@@ -141,9 +141,10 @@ website, and saves a verification report.
 
 Relay exports the run as ATOF, ATIF, and an
 [OpenInference trace](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/openinference)
-for [Arize Phoenix](https://arize.com/docs/phoenix). Complete the setup steps
-through `./scripts/build_tutorial_image.sh` before running this exercise. You do
-not need to run the first task.
+for [Arize Phoenix](https://arize.com/docs/phoenix). If you completed the first
+exercise, your environment is ready. Otherwise, follow the setup steps through
+`./scripts/build_tutorial_image.sh`. You do not need to run
+`./scripts/run_tutorial.sh` before starting this exercise.
 
 By default, this exercise reuses the Nemotron model and `NVIDIA_API_KEY` from
 the first exercise. No additional model configuration or credential is needed.
