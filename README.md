@@ -180,8 +180,8 @@ printed by the runner.
 The expanded trace view shows the complete execution path with model and tool
 spans, per-span durations, token counts, and the total estimated cost. The
 verified run below completed the research task with five model calls, five tool
-calls, no tool errors, 59,704 priced tokens, and an estimated cost of
-`$0.042031`.
+calls, no tool errors, 60,059 priced tokens, and an estimated cost of
+`$0.053960`.
 
 ![Phoenix trace tree with model, file, and web spans](screenshots/phoenix-trace-tree.png)
 
@@ -189,6 +189,11 @@ Select a tool span to inspect the request and result that moved the agent from
 the task constraints to the verified answer.
 
 ![Phoenix web-search span with query and results](screenshots/phoenix-web-search-span.png)
+
+Select the final model span to inspect the response, model metadata, duration,
+token count, and estimated cost.
+
+![Phoenix final model span with response and metrics](screenshots/phoenix-final-llm-span.png)
 
 Phoenix uses port `6006` by default. If that port is unavailable, choose another
 local port:
