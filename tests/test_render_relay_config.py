@@ -35,9 +35,12 @@ class RenderRelayConfigTests(unittest.TestCase):
         self.assertEqual(values["HERMES_VERSION"], "0.20.5")
         self.assertEqual(values["NEMO_RELAY_VERSION"], "0.7.2")
         self.assertEqual(
-            values["SMOKE_MODEL"], "aws/anthropic/bedrock-claude-sonnet-5"
+            values["SMOKE_MODEL"], "nvidia/nemotron-3.5-lightning-30b-a3b"
         )
-        self.assertEqual(values["NVIDIA_API_MODE"], "anthropic_messages")
+        self.assertEqual(
+            values["NVIDIA_BASE_URL"], "https://integrate.api.nvidia.com/v1"
+        )
+        self.assertEqual(values["NVIDIA_API_MODE"], "chat_completions")
         self.assertEqual(values["SMOKE_TERMINAL_CWD"], "/root")
         self.assertIn(
             "/opt/nemo-relay-hermes-tutorial/sample.py", values["SMOKE_QUERY"]
@@ -45,6 +48,28 @@ class RenderRelayConfigTests(unittest.TestCase):
         dockerfile = (REPOSITORY_ROOT / "Dockerfile").read_text(encoding="utf-8")
         self.assertIn("WORKDIR /opt/nemo-relay-hermes-tutorial", dockerfile)
         self.assertIn("COPY sample-project/sample.py ./sample.py", dockerfile)
+
+    def test_optional_conference_exercise_uses_internal_inference(self) -> None:
+        values: dict[str, str] = {}
+        for line in (
+            REPOSITORY_ROOT / "config" / "conference_research.env"
+        ).read_text(encoding="utf-8").splitlines():
+            if "=" not in line or line.lstrip().startswith("#"):
+                continue
+            key, value = line.split("=", maxsplit=1)
+            values[key] = value.strip().strip("'\"")
+
+        self.assertEqual(
+            values["CONFERENCE_RESEARCH_MODEL"],
+            "aws/anthropic/bedrock-claude-sonnet-5",
+        )
+        self.assertEqual(
+            values["CONFERENCE_RESEARCH_BASE_URL"],
+            "https://inference-api.nvidia.com",
+        )
+        self.assertEqual(
+            values["CONFERENCE_RESEARCH_API_MODE"], "anthropic_messages"
+        )
 
     def test_render_config_uses_absolute_output_paths(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

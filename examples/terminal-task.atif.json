@@ -1,6 +1,6 @@
 {
   "agent": {
-    "model_name": "aws/anthropic/bedrock-claude-sonnet-5",
+    "model_name": "nvidia/nemotron-3.5-lightning-30b-a3b",
     "name": "Hermes Agent"
   },
   "extra": {},
@@ -19,7 +19,7 @@
       "extra": {},
       "llm_call_count": 1,
       "message": "I will run the fixed sample script.",
-      "model_name": "aws/anthropic/bedrock-claude-sonnet-5",
+      "model_name": "nvidia/nemotron-3.5-lightning-30b-a3b",
       "observation": "VALUE=42",
       "source": "agent",
       "step_id": 2,

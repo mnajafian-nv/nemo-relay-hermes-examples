@@ -4,12 +4,13 @@ An agent can complete a coding task and still take an inefficient path. Repeated
 searches, failed tool calls, and unnecessary retries are difficult to spot from
 the final response alone, but they affect latency, token usage, and reliability.
 
-This tutorial follows one deliberately simple Hermes Agent task with Claude
-Sonnet 5 served through NVIDIA Inference. Hermes must use its terminal tool to
-run the included [`sample.py`](sample-project/sample.py) script inside an
-isolated Docker container and return the script's only output: `VALUE=42`. The
-value itself is not the point. It gives the tutorial an exact pass/fail result,
-so the rest of the walkthrough can focus on how Hermes completed the task.
+This tutorial follows one deliberately simple Hermes Agent task with
+[NVIDIA Nemotron 3.5 Lightning](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b)
+through NVIDIA Build. Hermes must use its terminal tool to run the included
+[`sample.py`](sample-project/sample.py) script inside an isolated Docker
+container and return the script's only output: `VALUE=42`. The fixed result
+gives the tutorial an exact pass/fail check, so the walkthrough can focus on
+how Hermes completed the task.
 
 [NVIDIA NeMo Relay](https://docs.nvidia.com/nemo/relay/latest/getting-started/about)
 is an open-source, multi-language agent runtime framework that provides a
@@ -56,10 +57,9 @@ terminal.
 
 On macOS or Linux, install [Git](https://git-scm.com/downloads), `curl`, and
 [Docker](https://docs.docker.com/get-started/get-docker/). Start Docker and
-obtain an NVIDIA Inference API key authorized for
-`aws/anthropic/bedrock-claude-sonnet-5`. This configuration requires access to
-NVIDIA's internal inference service. An NVIDIA Build API key does not
-authenticate this endpoint.
+open the
+[Nemotron 3.5 Lightning model page](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b)
+on NVIDIA Build to generate an API key.
 
 Run the following commands in order. The `keys.env` file is ignored by Git and
 keeps the key out of your shell history.
@@ -77,7 +77,7 @@ cd nemo-relay-hermes-examples
 # Copy the API-key template.
 cp keys.env.example keys.env
 
-# Add NVIDIA_API_KEY to keys.env before continuing.
+# Add the NVIDIA Build key as NVIDIA_API_KEY in keys.env before continuing.
 
 # Verify that Docker is running.
 docker version
@@ -92,7 +92,8 @@ docker version
 **Success check:** Confirm that the output includes all of the following:
 
 - `Task verified: VALUE=42`
-- An ATOF summary with at least one completed LLM scope and tool call
+- An ATOF summary with at least one completed LLM scope, positive token usage,
+  and one tool call
 - An ATIF summary with the agent, model, and trajectory step count
 - `tool errors: 0`
 - An `Artifacts:` path under `artifacts/runs/`
@@ -112,13 +113,14 @@ For a compact comparison of the two formats, review the minimal
 
 ### Inspect a Saved Run
 
-To summarize a saved run again, replace `<run-directory>` with the path printed
-by the tutorial:
+To summarize and validate token usage for a saved run, replace
+`<run-directory>` with the path printed by the tutorial:
 
 ```bash
 HERMES_PYTHON=".tutorial-runtime/venv/bin/python"
 "$HERMES_PYTHON" scripts/summarize_atof.py \
-  <run-directory>/atof/run.jsonl
+  <run-directory>/atof/run.jsonl \
+  --require-token-usage
 "$HERMES_PYTHON" scripts/summarize_atif.py \
   <run-directory>/atif/trajectory-*.json
 ```
@@ -132,7 +134,7 @@ exact success check to determine whether it succeeded.
 
 ## Optional Exercise: Trace a Multi-Tool Research Task in Phoenix
 
-The first exercise isolates one terminal call. This follow-up shows a more
+The first exercise isolates one terminal-tool task. This follow-up shows a more
 realistic agent path across files and the web. Hermes reads a fixed
 [conference travel record](conference-task/travel-record.md), identifies the
 event that matches every constraint, verifies it on the official conference
@@ -143,6 +145,13 @@ Relay exports the run as ATOF, ATIF, and an
 for [Arize Phoenix](https://arize.com/docs/phoenix). Complete the setup steps
 through `./scripts/build_tutorial_image.sh` before running this exercise. You do
 not need to run the first task.
+
+The Phoenix screenshots below use Claude Sonnet 5. To reproduce this run, add
+an API key authorized for the model in
+[config/conference_research.env](config/conference_research.env) to `keys.env`
+as `NVIDIA_INFERENCE_API_KEY`. To try another model, update its model, endpoint,
+API mode, and expected LLM span in that configuration file, then run the
+exercise and inspect the new trace in Phoenix.
 
 No separate Phoenix installation is required. The exercise downloads the
 pinned Phoenix container image if needed and starts it locally. If port `6006`
@@ -233,10 +242,16 @@ an answer based only on model knowledge.
 
 ## Troubleshooting
 
-### Authentication Fails
+### Main Tutorial Authentication Fails
 
 Confirm that `keys.env` contains a valid `NVIDIA_API_KEY` with access to the
-model configured in [config/smoke.env](config/smoke.env).
+Nemotron model configured in [config/smoke.env](config/smoke.env).
+
+### Optional Phoenix Exercise Authentication Fails
+
+Confirm that `keys.env` contains a valid `NVIDIA_INFERENCE_API_KEY` for the
+model and endpoint configured in
+[config/conference_research.env](config/conference_research.env).
 
 ### Tutorial Image Is Unavailable
 

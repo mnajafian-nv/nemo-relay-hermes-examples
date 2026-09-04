@@ -14,14 +14,17 @@ Run the tutorial to create the complete artifacts for your own execution.
 | [ATOF JSONL](terminal-task.atof.jsonl) | The ordered LLM and terminal-tool lifecycle events. |
 | [ATIF JSON](terminal-task.atif.json) | The step-oriented trajectory projected from related events. |
 
-The ATOF example records an LLM request, its tool-call response, and the start
-and successful completion of the `terminal` tool. The ATIF example groups the
-same work into a user step and an agent step that requests the terminal tool.
+The ATOF example records an LLM request, token usage, its tool-call response,
+and the start and successful completion of the `terminal` tool. The ATIF
+example groups the same work into a user step and an agent step that requests
+the terminal tool.
 
 Run the repository's summaries against the examples:
 
 ```bash
-python3 scripts/summarize_atof.py examples/terminal-task.atof.jsonl
+python3 scripts/summarize_atof.py \
+  examples/terminal-task.atof.jsonl \
+  --require-token-usage
 python3 scripts/summarize_atif.py examples/terminal-task.atif.json
 ```
 

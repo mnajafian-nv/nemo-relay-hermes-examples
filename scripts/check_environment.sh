@@ -13,18 +13,6 @@ fi
 # shellcheck disable=SC1090
 source "$smoke_config"
 
-if [[ -z "${NVIDIA_API_KEY:-}" && -f "$repo_root/keys.env" ]]; then
-  set -a
-  # shellcheck disable=SC1090
-  source "$repo_root/keys.env"
-  set +a
-fi
-
-if [[ -z "${NVIDIA_API_KEY:-}" ]]; then
-  echo "Set NVIDIA_API_KEY or copy keys.env.example to keys.env and set it there." >&2
-  exit 1
-fi
-
 hermes_python="$runtime_root/venv/bin/python"
 if [[ ! -x "$hermes_python" ]]; then
   echo "Tutorial runtime is unavailable. Run ./scripts/setup_tutorial_runtime.sh first." >&2

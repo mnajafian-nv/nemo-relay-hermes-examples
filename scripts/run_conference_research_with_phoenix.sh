@@ -24,12 +24,17 @@ trap cleanup_hermes_home EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM HUP
 
-if [[ -z "${NVIDIA_API_KEY:-}" && -f "$repo_root/keys.env" ]]; then
-  set -a
+if [[ -z "${NVIDIA_INFERENCE_API_KEY:-}" && -f "$repo_root/keys.env" ]]; then
   # shellcheck disable=SC1090,SC1091
   source "$repo_root/keys.env"
-  set +a
 fi
+
+if [[ -z "${NVIDIA_INFERENCE_API_KEY:-}" ]]; then
+  echo "Set NVIDIA_INFERENCE_API_KEY to a key authorized for the optional Claude Sonnet exercise." >&2
+  exit 1
+fi
+export NVIDIA_API_KEY="$NVIDIA_INFERENCE_API_KEY"
+unset NVIDIA_INFERENCE_API_KEY
 
 "$repo_root/scripts/check_environment.sh"
 hermes_python="$tutorial_runtime_root/venv/bin/python"
@@ -41,7 +46,9 @@ source "$repo_root/config/phoenix.env"
 # shellcheck disable=SC1091
 source "$repo_root/config/conference_research.env"
 
-model="${MODEL:-$SMOKE_MODEL}"
+model="$CONFERENCE_RESEARCH_MODEL"
+base_url="$CONFERENCE_RESEARCH_BASE_URL"
+api_mode="$CONFERENCE_RESEARCH_API_MODE"
 docker_image="$SMOKE_DOCKER_IMAGE"
 command -v docker >/dev/null || {
   echo "Docker is required because the file tools run in an isolated container." >&2
@@ -66,21 +73,21 @@ cp "$repo_root/conference-task/travel-record.md" "$input_directory/travel-record
 
 export HERMES_HOME="$hermes_home"
 export HERMES_NEMO_RELAY_PLUGINS_TOML="$plugins_path"
-export NVIDIA_BASE_URL
+export NVIDIA_BASE_URL="$base_url"
 
 cat >"$hermes_home/config.yaml" <<YAML
 model:
   provider: "nvidia"
   default: "$model"
-  base_url: "$NVIDIA_BASE_URL"
-  api_mode: "$NVIDIA_API_MODE"
+  base_url: "$base_url"
+  api_mode: "$api_mode"
 
 providers:
   nvidia:
     name: "NVIDIA Inference"
-    base_url: "$NVIDIA_BASE_URL"
+    base_url: "$base_url"
     key_env: "NVIDIA_API_KEY"
-    api_mode: "$NVIDIA_API_MODE"
+    api_mode: "$api_mode"
     default_model: "$model"
 
 display:
@@ -163,7 +170,7 @@ printf '\nATIF summary:\n'
   --api-url "$PHOENIX_UI_URL" \
   --project-name "$project_name" \
   --require-span-name hermes.session \
-  --require-span-name anthropic.messages \
+  --require-span-name "$CONFERENCE_RESEARCH_LLM_SPAN" \
   --require-span-name read_file \
   --require-span-name web_search \
   --require-span-name web_extract \

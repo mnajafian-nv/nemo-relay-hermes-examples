@@ -22,18 +22,23 @@ trap 'exit 130' INT
 trap 'exit 143' TERM HUP
 
 if [[ -z "${NVIDIA_API_KEY:-}" && -f "$repo_root/keys.env" ]]; then
-  set -a
   # shellcheck disable=SC1090
   source "$repo_root/keys.env"
-  set +a
 fi
+
+if [[ -z "${NVIDIA_API_KEY:-}" ]]; then
+  echo "Set NVIDIA_API_KEY to a key generated on NVIDIA Build." >&2
+  exit 1
+fi
+unset NVIDIA_INFERENCE_API_KEY
+export NVIDIA_API_KEY
 
 "$repo_root/scripts/check_environment.sh"
 hermes_python="$tutorial_runtime_root/venv/bin/python"
 
 # shellcheck disable=SC1090
 source "$repo_root/config/smoke.env"
-model="${MODEL:-$SMOKE_MODEL}"
+model="$SMOKE_MODEL"
 docker_image="$SMOKE_DOCKER_IMAGE"
 terminal_cwd="$SMOKE_TERMINAL_CWD"
 
@@ -65,7 +70,7 @@ model:
 
 providers:
   nvidia:
-    name: "NVIDIA Inference"
+    name: "NVIDIA Build"
     base_url: "$NVIDIA_BASE_URL"
     key_env: "NVIDIA_API_KEY"
     api_mode: "$NVIDIA_API_MODE"
@@ -106,6 +111,7 @@ printf 'ATOF summary:\n'
 "$hermes_python" "$repo_root/scripts/summarize_atof.py" \
   "$trace_path" \
   --require-completed-llm-scope \
+  --require-token-usage \
   --require-tool-call \
   --require-no-tool-errors \
   --require-tool-command "$SMOKE_REQUIRED_TOOL_COMMAND"

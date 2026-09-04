@@ -4,13 +4,18 @@
 from __future__ import annotations
 
 import argparse
-import collections
 import json
 import sys
 from pathlib import Path
 from typing import Any
 
 Event = dict[str, Any]
+TOKEN_SUMMARY_FIELDS = {
+    "llm_scopes_with_usage",
+    "prompt_tokens",
+    "completion_tokens",
+    "total_tokens",
+}
 
 
 def load_events(path: Path) -> list[Event]:
@@ -49,11 +54,71 @@ def is_error_status(event: Event) -> bool:
     return status is not None and str(status).strip().upper() not in {"OK", "SUCCESS", "UNSET"}
 
 
+def token_count(value: Any) -> int | None:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return None
+    return value
+
+
+def usage_from_event(event: Event) -> dict[str, int] | None:
+    data = event.get("data")
+    if not isinstance(data, dict) or not isinstance(data.get("usage"), dict):
+        return None
+
+    usage = data["usage"]
+    prompt_tokens = token_count(usage.get("prompt_tokens"))
+    completion_tokens = token_count(usage.get("completion_tokens"))
+    total_tokens = token_count(usage.get("total_tokens"))
+    if total_tokens is None and (
+        prompt_tokens is not None or completion_tokens is not None
+    ):
+        total_tokens = (prompt_tokens or 0) + (completion_tokens or 0)
+    if total_tokens is None:
+        return None
+    return {
+        "prompt_tokens": prompt_tokens or 0,
+        "completion_tokens": completion_tokens or 0,
+        "total_tokens": total_tokens,
+    }
+
+
+def completed_llm_usage(events: list[Event]) -> list[dict[str, int]]:
+    completed_scope_ids = {
+        event.get("uuid")
+        for event in events
+        if is_scope(event, "llm", "end") and event.get("uuid") is not None
+    }
+    usage_by_scope: dict[Any, dict[str, int]] = {}
+
+    for event in events:
+        if event.get("kind") != "mark" or event.get("name") != "llm.chunk":
+            continue
+        scope_id = event.get("parent_uuid")
+        usage = usage_from_event(event)
+        if scope_id in completed_scope_ids and usage is not None:
+            usage_by_scope[scope_id] = usage
+
+    for event in events:
+        if not is_scope(event, "llm", "end"):
+            continue
+        scope_id = event.get("uuid")
+        usage = usage_from_event(event)
+        if scope_id in completed_scope_ids and usage is not None:
+            usage_by_scope[scope_id] = usage
+
+    return list(usage_by_scope.values())
+
+
 def summarize(events: list[Event]) -> dict[str, int]:
     tool_ends = [event for event in events if is_scope(event, "tool", "end")]
+    llm_usage = completed_llm_usage(events)
     return {
         "events": len(events),
         "completed_llm_scopes": sum(is_scope(event, "llm", "end") for event in events),
+        "llm_scopes_with_usage": len(llm_usage),
+        "prompt_tokens": sum(usage["prompt_tokens"] for usage in llm_usage),
+        "completion_tokens": sum(usage["completion_tokens"] for usage in llm_usage),
+        "total_tokens": sum(usage["total_tokens"] for usage in llm_usage),
         "tool_calls": sum(is_scope(event, "tool", "start") for event in events),
         "tool_errors": sum(is_error_status(event) for event in tool_ends),
         "correlated_events": sum(event.get("uuid") is not None for event in events),
@@ -100,6 +165,7 @@ def validate_trace_requirements(
     require_no_tool_errors: bool,
     required_tool_command: str | None,
     required_tool_names: list[str],
+    require_token_usage: bool = False,
 ) -> None:
     missing: list[str] = []
     if require_llm and summary["completed_llm_scopes"] == 0:
@@ -108,6 +174,8 @@ def validate_trace_requirements(
         missing.append("tool call")
     if require_no_tool_errors and summary["tool_errors"] != 0:
         missing.append("error-free tool calls")
+    if require_token_usage and summary.get("total_tokens", 0) <= 0:
+        missing.append("positive LLM token usage")
     if required_tool_command and not has_successful_tool_command(
         events, required_tool_command
     ):
@@ -126,6 +194,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--require-completed-llm-scope",
         action="store_true",
         help="Fail when the trace has no completed LLM scope",
+    )
+    parser.add_argument(
+        "--require-token-usage",
+        action="store_true",
+        help="Fail when completed LLM scopes contain no positive token usage",
     )
     parser.add_argument(
         "--require-tool-call",
@@ -163,6 +236,7 @@ def main(argv: list[str] | None = None) -> int:
             require_no_tool_errors=args.require_no_tool_errors,
             required_tool_command=args.require_tool_command,
             required_tool_names=args.require_tool_name,
+            require_token_usage=args.require_token_usage,
         )
     except (OSError, TypeError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
@@ -170,6 +244,8 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"trace: {args.trace}")
     for label, value in summary.items():
+        if label in TOKEN_SUMMARY_FIELDS and not args.require_token_usage:
+            continue
         print(f"{label.replace('_', ' ')}: {value}")
     return 0
 

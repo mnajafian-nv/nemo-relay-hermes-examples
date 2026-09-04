@@ -21,7 +21,7 @@ class SummarizeAtifTests(unittest.TestCase):
             summary,
             {
                 "agent": "Hermes Agent",
-                "model": "aws/anthropic/bedrock-claude-sonnet-5",
+                "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
                 "steps": 2,
                 "llm_calls": 1,
                 "requested_tool_calls": 1,
