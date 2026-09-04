@@ -21,7 +21,7 @@ trap cleanup_hermes_home EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM HUP
 
-if [[ -f "$repo_root/keys.env" ]]; then
+if [[ -z "${NVIDIA_API_KEY:-}" && -f "$repo_root/keys.env" ]]; then
   set -a
   # shellcheck disable=SC1090
   source "$repo_root/keys.env"
@@ -55,6 +55,23 @@ mkdir -p "$run_root"
 export HERMES_HOME="$hermes_home"
 export HERMES_NEMO_RELAY_PLUGINS_TOML="$plugins_path"
 export NVIDIA_BASE_URL
+
+cat >"$hermes_home/config.yaml" <<YAML
+model:
+  provider: "nvidia"
+  default: "$model"
+  base_url: "$NVIDIA_BASE_URL"
+  api_mode: "$NVIDIA_API_MODE"
+
+providers:
+  nvidia:
+    name: "NVIDIA Inference"
+    base_url: "$NVIDIA_BASE_URL"
+    key_env: "NVIDIA_API_KEY"
+    api_mode: "$NVIDIA_API_MODE"
+    default_model: "$model"
+YAML
+
 # The tutorial task is intentionally fixed and runs in an ephemeral container.
 # Do not inherit a host-terminal or Docker configuration from the caller.
 # shellcheck disable=SC1090

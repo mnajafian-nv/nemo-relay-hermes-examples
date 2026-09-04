@@ -69,6 +69,20 @@ class VerifyConferenceResearchTests(unittest.TestCase):
             verify_conference_research.normalize_answer("**COLT 2026**"), EXPECTED_NAME
         )
 
+    def test_response_identifies_expected_name_accepts_expanded_name(self) -> None:
+        self.assertTrue(
+            verify_conference_research.response_identifies_expected_name(
+                "Conference on Learning Theory (COLT 2026)", EXPECTED_NAME
+            )
+        )
+
+    def test_response_identifies_expected_name_rejects_other_conference(self) -> None:
+        self.assertFalse(
+            verify_conference_research.response_identifies_expected_name(
+                "NeurIPS 2026", EXPECTED_NAME
+            )
+        )
+
     def test_validate_report_accepts_expected_facts_and_source(self) -> None:
         report = """# COLT 2026
 

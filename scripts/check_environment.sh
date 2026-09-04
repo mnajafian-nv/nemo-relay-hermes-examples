@@ -13,7 +13,7 @@ fi
 # shellcheck disable=SC1090
 source "$smoke_config"
 
-if [[ -f "$repo_root/keys.env" ]]; then
+if [[ -z "${NVIDIA_API_KEY:-}" && -f "$repo_root/keys.env" ]]; then
   set -a
   # shellcheck disable=SC1090
   source "$repo_root/keys.env"

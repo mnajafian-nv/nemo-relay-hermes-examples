@@ -12,7 +12,17 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-QUERY = "{ projects(first: 1000) { edges { node { name traceCount } } } }"
+QUERY = """{
+  projects(first: 1000) {
+    edges {
+      node {
+        name
+        traceCount
+        costSummary { total { cost tokens } }
+      }
+    }
+  }
+}"""
 
 
 def project_trace_count(payload: dict[str, Any], project_name: str) -> int:
@@ -33,6 +43,40 @@ def project_trace_count(payload: dict[str, Any], project_name: str) -> int:
             raise ValueError("Phoenix returned an invalid trace count")
         return count
     return 0
+
+
+def project_cost_summary(
+    payload: dict[str, Any], project_name: str
+) -> tuple[float, float] | None:
+    try:
+        edges = payload["data"]["projects"]["edges"]
+    except (KeyError, TypeError) as error:
+        raise ValueError("Phoenix returned an unexpected project response") from error
+    if not isinstance(edges, list):
+        raise ValueError("Phoenix returned an unexpected project list")
+    for edge in edges:
+        if not isinstance(edge, dict):
+            continue
+        node = edge.get("node")
+        if not isinstance(node, dict) or node.get("name") != project_name:
+            continue
+        summary = node.get("costSummary")
+        total = summary.get("total") if isinstance(summary, dict) else None
+        if total is None:
+            return None
+        if not isinstance(total, dict):
+            raise ValueError("Phoenix returned an invalid cost summary")
+        cost = total.get("cost")
+        tokens = total.get("tokens")
+        for name, value in (("cost", cost), ("tokens", tokens)):
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or value < 0
+            ):
+                raise ValueError(f"Phoenix returned an invalid {name} total")
+        return float(cost), float(tokens)
+    return None
 
 
 def fetch_projects(graphql_url: str) -> dict[str, Any]:
@@ -96,6 +140,26 @@ def wait_for_trace(
     raise TimeoutError(f"Phoenix did not receive a trace for {project_name}{detail}")
 
 
+def wait_for_positive_cost_summary(
+    graphql_url: str, project_name: str, *, timeout_seconds: float
+) -> tuple[float, float]:
+    deadline = time.monotonic() + timeout_seconds
+    last_error: Exception | None = None
+    while time.monotonic() < deadline:
+        try:
+            summary = project_cost_summary(fetch_projects(graphql_url), project_name)
+            if summary is not None and summary[0] > 0 and summary[1] > 0:
+                return summary
+        except (OSError, ValueError, urllib.error.URLError) as error:
+            last_error = error
+        time.sleep(1)
+    detail = f": {last_error}" if last_error is not None else ""
+    raise TimeoutError(
+        f"Phoenix did not calculate positive token and cost totals for {project_name}"
+        f"{detail}"
+    )
+
+
 def wait_for_span_names(
     api_url: str,
     project_name: str,
@@ -127,6 +191,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--api-url")
     parser.add_argument("--project-name", required=True)
     parser.add_argument("--require-span-name", action="append", default=[])
+    parser.add_argument("--require-positive-cost-summary", action="store_true")
     parser.add_argument("--timeout-seconds", type=float, default=30)
     args = parser.parse_args(argv)
     if args.timeout_seconds <= 0:
@@ -139,6 +204,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     try:
+        cost_summary: tuple[float, float] | None = None
         trace_count = wait_for_trace(
             args.graphql_url,
             args.project_name,
@@ -151,10 +217,23 @@ def main(argv: list[str] | None = None) -> int:
                 set(args.require_span_name),
                 timeout_seconds=args.timeout_seconds,
             )
+        if args.require_positive_cost_summary:
+            cost_summary = wait_for_positive_cost_summary(
+                args.graphql_url,
+                args.project_name,
+                timeout_seconds=args.timeout_seconds,
+            )
     except (OSError, TimeoutError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
-    print(f"Phoenix project verified: {args.project_name} ({trace_count} trace)")
+    detail = ""
+    if cost_summary is not None:
+        cost, tokens = cost_summary
+        detail = f", {tokens:g} priced tokens, ${cost:.6f}"
+    print(
+        f"Phoenix project verified: {args.project_name} "
+        f"({trace_count} trace{detail})"
+    )
     return 0
 
 
