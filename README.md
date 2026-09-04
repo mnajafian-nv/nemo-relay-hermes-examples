@@ -35,8 +35,8 @@ result.
 
 1. Set up an isolated Hermes Agent runtime with its bundled NeMo Relay
    integration.
-2. Run a fixed terminal-tool task, verify the result, and inspect the ATOF and
-   ATIF traces.
+2. Run a fixed terminal-tool task, verify the result, and inspect its ATOF
+   event stream and ATIF trajectory.
 3. Optionally run a file-and-web research task and inspect its model calls, tool
    calls, duration, token usage, and available cost estimates in Phoenix.
 4. Use trace evidence and a task verifier to evaluate a controlled agent
@@ -78,7 +78,7 @@ docker version
 # Build the Docker image for the terminal-tool task.
 ./scripts/build_tutorial_image.sh
 
-# Run the tutorial and export the ATOF and ATIF traces.
+# Run the tutorial and export the ATOF event stream and ATIF trajectory.
 ./scripts/run_tutorial.sh
 ```
 
@@ -139,7 +139,7 @@ realistic agent path across files and the web. Hermes reads a fixed
 event that matches every constraint, verifies it on the official conference
 website, and saves a verification report.
 
-Relay exports the run as ATOF, ATIF, and an
+Relay exports an ATOF event stream, an ATIF trajectory, and an
 [OpenInference trace](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/openinference)
 for [Arize Phoenix](https://arize.com/docs/phoenix). If you completed the first
 exercise, your environment is ready. Otherwise, follow the setup steps through
@@ -186,9 +186,9 @@ output, and expand its trace. Follow the `read_file`, `web_search`,
 record to the saved report. Compare that view with the ATOF and ATIF summaries
 printed by the runner.
 
-### Compare Another Model
+### Inspect Another Model
 
-To compare another model without changing the task or verifier, copy the model
+To inspect another model without changing the task or verifier, copy the model
 profile template:
 
 ```bash
@@ -207,10 +207,11 @@ then run:
 The runner supports the `chat_completions`, `anthropic_messages`, and
 `codex_responses` API modes provided by Hermes. The selected endpoint must
 support tool use. Both runs use the same task, tools, execution limits, and
-verifier. Compare task completion first, then inspect model and tool paths,
-duration, token usage, and any available cost estimates in Phoenix.
+verifier, but live web-search results can differ. Use this exercise to inspect
+execution paths, not to attribute a difference to the model. A controlled model
+comparison also requires fixed search evidence and repeated runs.
 
-### Example Comparison with Claude Sonnet 5
+### Example Run with Claude Sonnet 5
 
 The retained screenshots show the same task run with Claude Sonnet 5 through a
 separately configured compatible endpoint. The

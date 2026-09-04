@@ -42,9 +42,30 @@ mkdir -p "$runtime_root/tools"
 if [[ ! -x "$uv_bin" ]]; then
   uv_installer="$(mktemp "${TMPDIR:-/tmp}/nemo-relay-hermes-uv.XXXXXX")"
   curl --fail --location --silent --show-error \
-    https://astral.sh/uv/install.sh \
+    "https://astral.sh/uv/$UV_VERSION/install.sh" \
     --output "$uv_installer"
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    uv_installer_sha256="$(sha256sum "$uv_installer" | awk '{print $1}')"
+  elif command -v shasum >/dev/null 2>&1; then
+    uv_installer_sha256="$(shasum -a 256 "$uv_installer" | awk '{print $1}')"
+  else
+    echo "sha256sum or shasum is required to verify the uv installer." >&2
+    exit 1
+  fi
+  if [[ "$uv_installer_sha256" != "$UV_INSTALLER_SHA256" ]]; then
+    echo "uv $UV_VERSION installer checksum verification failed." >&2
+    exit 1
+  fi
+
   UV_UNMANAGED_INSTALL="$runtime_root/tools" sh "$uv_installer"
+fi
+
+installed_uv_version="$("$uv_bin" --version | awk '{print $2}')"
+if [[ "$installed_uv_version" != "$UV_VERSION" ]]; then
+  echo "Expected uv $UV_VERSION, found $installed_uv_version." >&2
+  echo "Remove $runtime_root and run this script again." >&2
+  exit 1
 fi
 
 if [[ ! -d "$hermes_source/.git" ]]; then
@@ -89,4 +110,7 @@ if [[ "$installed_relay_version" != "$NEMO_RELAY_VERSION" ]]; then
   exit 1
 fi
 
-printf '%s\n' "Tutorial runtime is ready: Hermes $installed_hermes_version, nemo-relay $installed_relay_version."
+printf 'Tutorial runtime is ready: uv %s, Hermes %s, nemo-relay %s.\n' \
+  "$installed_uv_version" \
+  "$installed_hermes_version" \
+  "$installed_relay_version"

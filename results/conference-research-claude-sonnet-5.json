@@ -6,7 +6,7 @@
   "model": "claude-sonnet-5",
   "verifier": {
     "status": "passed",
-    "expected_result": "COLT 2026"
+    "verified_result": "COLT 2026"
   },
   "execution": {
     "measurement_source": "Phoenix",

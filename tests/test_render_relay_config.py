@@ -34,6 +34,11 @@ class RenderRelayConfigTests(unittest.TestCase):
         )
         self.assertEqual(values["HERMES_VERSION"], "0.20.5")
         self.assertEqual(values["NEMO_RELAY_VERSION"], "0.7.2")
+        self.assertEqual(values["UV_VERSION"], "0.12.9")
+        self.assertEqual(
+            values["UV_INSTALLER_SHA256"],
+            "222e006c0fe4a0d793031833e469b21df72311f4e3526ffecca0e19e6dfabc32",
+        )
         self.assertEqual(
             values["SMOKE_MODEL"], "nvidia/nemotron-3.5-lightning-30b-a3b"
         )
