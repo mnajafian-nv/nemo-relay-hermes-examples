@@ -33,7 +33,7 @@ result.
 
 **In this tutorial, you will:**
 
-1. Set up an isolated Hermes Agent runtime with its bundled NeMo Relay
+1. Set up an isolated Hermes Agent runtime with its native NeMo Relay
    integration.
 2. Run a fixed terminal-tool task, verify the result, and inspect its ATOF
    event stream and ATIF trajectory.
@@ -44,9 +44,9 @@ result.
 
 ## Run the Tutorial
 
-The setup script installs Hermes Agent `0.20.5` and its bundled NeMo Relay
-`0.7.2` in `.tutorial-runtime/` without changing your existing Hermes
-installation.
+The setup script installs Hermes Agent `0.21.1` and the NeMo Relay `0.8.3`
+dependency selected by the Hermes release lockfile. It creates the environment
+under `.tutorial-runtime/` without changing your existing Hermes installation.
 
 On macOS or Linux, install [Git](https://git-scm.com/downloads), `curl`, and
 [Docker](https://docs.docker.com/get-started/get-docker/). Start Docker and
@@ -172,7 +172,8 @@ credential is required. The runner verifies all of the following:
 - The ATOF trace contains successful `read_file`, `web_search`, `web_extract`,
   and `write_file` calls.
 - ATIF contains the trajectory.
-- Phoenix receives the corresponding model and tool spans.
+- Phoenix receives the corresponding model and tool spans with positive token
+  usage.
 
 The script prints a Phoenix URL and saves the response, verification report,
 ATOF events, and ATIF trajectory under
@@ -185,6 +186,21 @@ output, and expand its trace. Follow the `read_file`, `web_search`,
 `web_extract`, and `write_file` spans to see how Hermes moved from the travel
 record to the saved report. Compare that view with the ATOF and ATIF summaries
 printed by the runner.
+
+### Verified Nemotron Run
+
+A clean run of this tutorial completed the research task with Hermes Agent
+`0.21.1`, NeMo Relay `0.8.3`, and Nemotron 3.5 Lightning. The
+[sanitized result summary](results/conference-research-nemotron-3.5-lightning.json)
+records the exact runtime, endpoint, API mode, verifier result, and execution
+measurements. Phoenix received five model calls, four tool calls, no tool
+errors, and 33,478 tokens. No Nemotron price was configured, so this run does
+not claim an estimated cost.
+
+The trace below shows the file and web tools between model calls, with token
+usage reported for each completed model span.
+
+![Phoenix trace showing the Nemotron model, file and web tools, duration, and token usage](screenshots/phoenix-nemotron-trace.png)
 
 ### Inspect Another Model
 
@@ -211,15 +227,18 @@ verifier, but live web-search results can differ. Use this exercise to inspect
 execution paths, not to attribute a difference to the model. A controlled model
 comparison also requires fixed search evidence and repeated runs.
 
-### Example Run with Claude Sonnet 5
+### Optional Provider Example: Claude Sonnet 5
 
 The retained screenshots show the same task run with Claude Sonnet 5 through a
 separately configured compatible endpoint. The
 [sanitized result summary](results/conference-research-claude-sonnet-5.json)
-records the verifier result and the measurements reported by Phoenix: five
-model calls, five tool calls, no tool errors, 60,059 tokens, and an estimated
-total cost of `$0.053960`. Cost estimates depend on whether the selected model
-has pricing metadata available to the telemetry backend.
+records the runtime, capture time, verifier result, and measurements reported
+by Phoenix: five model calls, five tool calls, no tool errors, 60,059 tokens,
+and an estimated total cost of `$0.053960`. This retained result uses Hermes
+Agent `0.20.5` and NeMo Relay `0.7.2`. It illustrates a second provider-shaped
+trace and is not a performance comparison with the Nemotron run. Cost
+estimates depend on whether the selected model has pricing metadata available
+to the telemetry backend.
 
 The trace tree shows the total estimated cost above the span list and token
 counts beside the model spans.

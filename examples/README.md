@@ -14,8 +14,9 @@ Run the tutorial to create the complete artifacts for your own execution.
 | [ATOF JSONL](terminal-task.atof.jsonl) | The ordered LLM and terminal-tool lifecycle events. |
 | [ATIF JSON](terminal-task.atif.json) | The step-oriented trajectory projected from related events. |
 
-The ATOF example records an LLM request, token usage, its tool-call response,
-and the start and successful completion of the `terminal` tool. The ATIF
+The ATOF example records an LLM request, streaming and final response token
+usage, its tool-call response, and the start and successful completion of the
+`terminal` tool. The ATIF
 example groups the same work into a user step and an agent step that requests
 the terminal tool.
 

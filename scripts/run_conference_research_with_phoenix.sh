@@ -270,6 +270,7 @@ phoenix_requirements=(
   --api-url "$PHOENIX_UI_URL" \
   --project-name "$project_name" \
   "${phoenix_requirements[@]}" \
+  --require-positive-token-total \
   --timeout-seconds 30
 
 run_succeeded=true
