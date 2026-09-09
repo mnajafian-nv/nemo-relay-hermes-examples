@@ -198,13 +198,28 @@ A clean run of this tutorial completed the research task with Hermes Agent
 [sanitized result summary](results/conference-research-nemotron-3.5-lightning.json)
 records the exact runtime, endpoint, API mode, verifier result, and execution
 measurements. Phoenix received five model calls, four tool calls, no tool
-errors, and 40,893 tokens over 35.9 seconds. No Nemotron price was configured,
+errors, and 40,294 tokens over 33.9 seconds. No Nemotron price was configured,
 so this run does not claim an estimated cost.
 
-The trace below shows the file and web tools between model calls, with token
-usage reported for each completed model span.
+Select the first model span to inspect the user's research request and the
+first tool call Hermes chose.
 
-![Phoenix trace showing the Nemotron model, file and web tools, duration, and token usage](screenshots/phoenix-nemotron-trace.png)
+[![Phoenix trace showing the user's research request and the first read-file call](screenshots/phoenix-nemotron-user-query.png)](screenshots/phoenix-nemotron-user-query.png)
+
+Select the `web_search` span to inspect the query and the sources returned to
+Hermes.
+
+[![Phoenix web-search span showing the query and returned sources](screenshots/phoenix-nemotron-web-search-span.png)](screenshots/phoenix-nemotron-web-search-span.png)
+
+Select the `write_file` span to verify the report content, destination, and
+successful write result.
+
+[![Phoenix write-file span showing the saved conference report and successful result](screenshots/phoenix-nemotron-write-file-span.png)](screenshots/phoenix-nemotron-write-file-span.png)
+
+Select the final model span to connect the verified response to that call's
+duration and token usage.
+
+[![Phoenix final model span showing the verified response, duration, and token usage](screenshots/phoenix-nemotron-final-llm-span.png)](screenshots/phoenix-nemotron-final-llm-span.png)
 
 ### Inspect Another Model
 
@@ -245,19 +260,15 @@ estimates depend on whether the selected model has pricing metadata available
 to the telemetry backend.
 
 The trace tree shows the total estimated cost above the span list and token
-counts beside the model spans.
+counts beside the model spans. Select the image to open it at full resolution.
 
-![Phoenix trace tree showing total cost, token counts, and model, file, and web spans](screenshots/phoenix-trace-tree.png)
+[![Phoenix trace tree showing total cost, token counts, and model, file, and web spans](screenshots/phoenix-trace-tree.png)](screenshots/phoenix-trace-tree.png)
 
-Select a tool span to inspect the request and result that moved the agent from
-the task constraints to the verified answer.
+The following full-resolution views retain the tool and final-response details
+from this optional provider run:
 
-![Phoenix web-search span with query and results](screenshots/phoenix-web-search-span.png)
-
-Select the final model span to inspect the response, model metadata, duration,
-token count, and estimated cost.
-
-![Phoenix final model span with response and metrics](screenshots/phoenix-final-llm-span.png)
+- [Inspect the Sonnet web-search query and results](screenshots/phoenix-web-search-span.png).
+- [Inspect the Sonnet final response and model-call metrics](screenshots/phoenix-final-llm-span.png).
 
 Phoenix uses port `6006` by default. If that port is unavailable, choose another
 local port:
