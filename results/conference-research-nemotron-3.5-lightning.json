@@ -1,5 +1,5 @@
 {
-  "captured_at_utc": "2026-09-09T16:16:39Z",
+  "captured_at_utc": "2026-09-09T17:34:09Z",
   "task": {
     "name": "conference research",
     "description": "Identify the conference that matches the supplied travel constraints, verify it against an official source, and write the result to a file."
@@ -21,8 +21,8 @@
     "model_calls": 5,
     "tool_calls": 4,
     "tool_errors": 0,
-    "duration_seconds": 35.9,
-    "total_tokens": 40893,
+    "duration_seconds": 52.5,
+    "total_tokens": 27240,
     "estimated_cost_usd": null
   }
 }
