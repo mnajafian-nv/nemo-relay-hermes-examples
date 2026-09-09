@@ -198,8 +198,8 @@ A clean run of this tutorial completed the research task with Hermes Agent
 [sanitized result summary](results/conference-research-nemotron-3.5-lightning.json)
 records the exact runtime, endpoint, API mode, verifier result, and execution
 measurements. Phoenix received five model calls, four tool calls, no tool
-errors, and 33,478 tokens. No Nemotron price was configured, so this run does
-not claim an estimated cost.
+errors, and 40,893 tokens over 35.9 seconds. No Nemotron price was configured,
+so this run does not claim an estimated cost.
 
 The trace below shows the file and web tools between model calls, with token
 usage reported for each completed model span.
