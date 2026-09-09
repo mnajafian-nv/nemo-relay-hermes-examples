@@ -1,16 +1,17 @@
 {
-  "captured_at_utc": "2026-09-04T03:19:44Z",
+  "captured_at_utc": "2026-09-09T05:17:26Z",
   "task": {
     "name": "conference research",
     "description": "Identify the conference that matches the supplied travel constraints, verify it against an official source, and write the result to a file."
   },
   "runtime": {
-    "hermes_agent": "0.20.5",
-    "nemo_relay": "0.7.2",
+    "hermes_agent": "0.21.1",
+    "nemo_relay": "0.8.3",
     "phoenix": "19.10.0"
   },
-  "model": "claude-sonnet-5",
-  "api_mode": "anthropic_messages",
+  "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+  "api_mode": "chat_completions",
+  "endpoint": "https://integrate.api.nvidia.com/v1",
   "verifier": {
     "status": "passed",
     "verified_result": "COLT 2026"
@@ -18,9 +19,9 @@
   "execution": {
     "measurement_source": "Phoenix",
     "model_calls": 5,
-    "tool_calls": 5,
+    "tool_calls": 4,
     "tool_errors": 0,
-    "total_tokens": 60059,
-    "estimated_cost_usd": 0.05396
+    "total_tokens": 33478,
+    "estimated_cost_usd": null
   }
 }

@@ -95,6 +95,86 @@ class VerifyPhoenixTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid cost total"):
             verify_phoenix.project_cost_summary(payload, "tutorial")
 
+    def test_project_token_total_does_not_require_pricing(self) -> None:
+        payload = {
+            "data": {
+                "projects": {
+                    "edges": [
+                        {
+                            "node": {
+                                "name": "tutorial",
+                                "costSummary": {
+                                    "total": {"cost": None, "tokens": 2048.0}
+                                },
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+
+        self.assertEqual(
+            verify_phoenix.project_token_total(payload, "tutorial"), 2048.0
+        )
+
+    def test_project_token_total_returns_none_while_summary_is_unavailable(
+        self,
+    ) -> None:
+        payload = {
+            "data": {
+                "projects": {
+                    "edges": [
+                        {"node": {"name": "tutorial", "costSummary": None}}
+                    ]
+                }
+            }
+        }
+
+        self.assertIsNone(verify_phoenix.project_token_total(payload, "tutorial"))
+
+    def test_project_token_total_returns_none_while_tokens_are_unavailable(
+        self,
+    ) -> None:
+        payload = {
+            "data": {
+                "projects": {
+                    "edges": [
+                        {
+                            "node": {
+                                "name": "tutorial",
+                                "costSummary": {
+                                    "total": {"cost": None, "tokens": None}
+                                },
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+
+        self.assertIsNone(verify_phoenix.project_token_total(payload, "tutorial"))
+
+    def test_project_token_total_rejects_invalid_total(self) -> None:
+        payload = {
+            "data": {
+                "projects": {
+                    "edges": [
+                        {
+                            "node": {
+                                "name": "tutorial",
+                                "costSummary": {
+                                    "total": {"cost": None, "tokens": -1}
+                                },
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+
+        with self.assertRaisesRegex(ValueError, "invalid token total"):
+            verify_phoenix.project_token_total(payload, "tutorial")
+
     def test_trace_span_names_returns_unique_names(self) -> None:
         payload = {
             "data": [

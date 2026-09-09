@@ -28,12 +28,12 @@ class RenderRelayConfigTests(unittest.TestCase):
         self.assertTrue(values["SMOKE_QUERY"])
         self.assertTrue(values["SMOKE_EXPECTED_OUTPUT"])
         self.assertTrue(values["SMOKE_REQUIRED_TOOL_COMMAND"])
-        self.assertEqual(values["HERMES_REF"], "v2026.8.19")
+        self.assertEqual(values["HERMES_REF"], "v2026.9.7")
         self.assertEqual(
-            values["HERMES_COMMIT"], "fcbd1076a93841fa88855acce810e342a5b78101"
+            values["HERMES_COMMIT"], "2237be355906fbe6065ce1815711eee52b2d646e"
         )
-        self.assertEqual(values["HERMES_VERSION"], "0.20.5")
-        self.assertEqual(values["NEMO_RELAY_VERSION"], "0.7.2")
+        self.assertEqual(values["HERMES_VERSION"], "0.21.1")
+        self.assertEqual(values["NEMO_RELAY_VERSION"], "0.8.3")
         self.assertEqual(values["UV_VERSION"], "0.12.9")
         self.assertEqual(
             values["UV_INSTALLER_SHA256"],

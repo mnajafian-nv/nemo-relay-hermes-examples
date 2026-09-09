@@ -30,9 +30,8 @@ class SummarizeAtofTests(unittest.TestCase):
         self.assertIn("total tokens: 120", required_output.getvalue())
 
     def test_example_trace_summarizes_the_terminal_task(self) -> None:
-        summary = summarize_atof.summarize(
-            summarize_atof.load_events(EXAMPLES / "terminal-task.atof.jsonl")
-        )
+        events = summarize_atof.load_events(EXAMPLES / "terminal-task.atof.jsonl")
+        summary = summarize_atof.summarize(events)
 
         self.assertEqual(
             summary,
@@ -47,6 +46,17 @@ class SummarizeAtofTests(unittest.TestCase):
                 "tool_errors": 0,
                 "correlated_events": 5,
             },
+        )
+
+        llm_end = next(
+            event
+            for event in events
+            if event.get("category") == "llm"
+            and event.get("scope_category") == "end"
+        )
+        self.assertEqual(
+            llm_end["data"]["usage"],
+            {"prompt_tokens": 100, "completion_tokens": 20, "total_tokens": 120},
         )
 
     def test_summarize_counts_completed_scopes_and_tools(self) -> None:
