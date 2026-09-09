@@ -198,19 +198,23 @@ A clean run of this tutorial completed the research task with Hermes Agent
 [sanitized result summary](results/conference-research-nemotron-3.5-lightning.json)
 records the exact runtime, endpoint, API mode, verifier result, and execution
 measurements. Phoenix received five model calls, four tool calls, no tool
-errors, and 27,240 tokens over 52.5 seconds. No Nemotron price was configured,
+errors, and 40,294 tokens over 33.9 seconds. No Nemotron price was configured,
 so this run does not claim an estimated cost.
 
-Start with the session overview. It shows the full model-and-tool sequence,
-duration and token usage for each completed span, and the Relay session
-metadata.
+Select the first model span to inspect the user's research request and the
+first tool call Hermes chose.
 
-[![Phoenix session trace showing the model-and-tool sequence, duration, token usage, and Relay metadata](screenshots/phoenix-nemotron-trace.png)](screenshots/phoenix-nemotron-trace.png)
+[![Phoenix trace showing the user's research request and the first read-file call](screenshots/phoenix-nemotron-user-query.png)](screenshots/phoenix-nemotron-user-query.png)
 
 Select the `web_search` span to inspect the query and the sources returned to
 Hermes.
 
 [![Phoenix web-search span showing the query and returned sources](screenshots/phoenix-nemotron-web-search-span.png)](screenshots/phoenix-nemotron-web-search-span.png)
+
+Select the `write_file` span to verify the report content, destination, and
+successful write result.
+
+[![Phoenix write-file span showing the saved conference report and successful result](screenshots/phoenix-nemotron-write-file-span.png)](screenshots/phoenix-nemotron-write-file-span.png)
 
 Select the final model span to connect the verified response to that call's
 duration and token usage.
