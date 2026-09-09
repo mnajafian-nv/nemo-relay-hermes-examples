@@ -38,7 +38,8 @@ result.
 2. Run a fixed terminal-tool task, verify the result, and inspect its ATOF
    event stream and ATIF trajectory.
 3. Optionally run a file-and-web research task and inspect its model calls, tool
-   calls, duration, token usage, and available cost estimates in Phoenix.
+   calls, duration, token usage, and available cost estimates in
+   [Arize Phoenix](https://arize.com/docs/phoenix).
 4. Use trace evidence and a task verifier to evaluate a controlled agent
    change.
 
@@ -48,9 +49,10 @@ The setup script installs Hermes Agent `0.21.1` and the NeMo Relay `0.8.3`
 dependency selected by the Hermes release lockfile. It creates the environment
 under `.tutorial-runtime/` without changing your existing Hermes installation.
 
-On macOS or Linux, install [Git](https://git-scm.com/downloads), `curl`, and
-[Docker](https://docs.docker.com/get-started/get-docker/). Start Docker and
-open the
+On macOS or Linux, install [Git](https://git-scm.com/downloads),
+[curl](https://curl.se/download.html), and
+[Docker](https://docs.docker.com/get-started/get-docker/). Start Docker and open
+the
 [Nemotron 3.5 Lightning model page](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b)
 on NVIDIA Build to generate an API key.
 
@@ -141,8 +143,8 @@ website, and saves a verification report.
 
 Relay exports an ATOF event stream, an ATIF trajectory, and an
 [OpenInference trace](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/openinference)
-for [Arize Phoenix](https://arize.com/docs/phoenix). If you completed the first
-exercise, your environment is ready. Otherwise, follow the setup steps through
+for the local Phoenix instance. If you completed the first exercise, your
+environment is ready. Otherwise, follow the setup steps through
 `./scripts/build_tutorial_image.sh`. You do not need to run
 `./scripts/run_tutorial.sh` before starting this exercise.
 
@@ -150,9 +152,11 @@ By default, this exercise reuses the Nemotron model and `NVIDIA_API_KEY` from
 the first exercise. No additional model configuration or credential is needed.
 
 No separate Phoenix installation is required. The exercise downloads the
-pinned Phoenix container image if needed and starts it locally. If port `6006`
-is already in use, use the alternate-port command below. The script does not
-stop or replace the existing service.
+pinned Phoenix container image if needed and starts it locally. For background
+on this deployment model, see the
+[Phoenix Docker guide](https://arize.com/docs/phoenix/self-hosting/deployment-options/docker).
+If port `6006` is already in use, use the alternate-port command below. The
+script does not stop or replace the existing service.
 
 ### Run the Research Task with Nemotron
 
