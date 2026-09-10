@@ -1,5 +1,7 @@
 # Tracing Agent Harness Behavior with NVIDIA NeMo Relay
 
+## Overview
+
 An agent's final response does not tell you everything that happened during the
 run. An incorrect result can come from missing context, a poor tool choice, or a
 failed call. Even a correct result can hide repeated searches, unnecessary
@@ -12,10 +14,11 @@ to the existing agent stack. It gives coding agents, applications, framework
 integrations, middleware, and observability backends a shared runtime for
 scopes, policy, plugins, and lifecycle events.
 
-Hermes Agent includes Relay on supported platforms and maps its session, turn,
-LLM, and tool lifecycles to Relay. This tutorial configures Relay exporters
-through that native integration. It does not require a separate Hermes
-observability plugin, Relay CLI, or local gateway.
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) includes Relay on
+supported platforms and maps its session, turn, LLM, and tool lifecycles to
+Relay. This tutorial configures Relay exporters through that native integration.
+It does not require a separate Hermes observability plugin, Relay CLI, or local
+gateway.
 
 This tutorial uses
 [NVIDIA Nemotron 3.5 Lightning](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b)
@@ -26,10 +29,11 @@ for two Hermes Agent runs.
 1. Set up an isolated Hermes Agent runtime with its native NeMo Relay
    integration.
 2. Run the included Python script, verify its `VALUE=42` result, and inspect the
-   ATOF event stream and ATIF trajectory.
-3. Ask Hermes to research an unnamed conference, save a verified report, and
-   explore the run in Phoenix.
-4. Optionally trace the same research task with another compatible model.
+   agent's event stream and trajectory.
+3. Ask Hermes to identify a conference from its dates, location, and subject,
+   save the verified result in a report, and use Phoenix to inspect each step of
+   the run.
+4. Optionally trace the same conference task with another compatible model.
 5. Use the trace evidence to evaluate a controlled prompt, tool, or harness
    change.
 
@@ -100,10 +104,11 @@ Hermes can execute terminal commands, so this tutorial runs them in an isolated
 Docker container instead of on your host. The container cannot access the
 network, repository checkout, or NVIDIA API key.
 
-## Continue the Tutorial
+## Continue with the Full Tutorial
 
 After completing the Quick Start, continue with
-[Trace Hermes Agent Runs with NeMo Relay](TUTORIAL.md).
+[the detailed tutorial](TUTORIAL.md) to find and verify a conference with file
+and web tools, then inspect each step of the agent's execution in Phoenix.
 
 ## License
 
