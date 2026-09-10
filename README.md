@@ -8,16 +8,17 @@ failed call. Even a correct result can hide repeated searches, unnecessary
 retries, and extra model calls. Tracing the run helps you find these behaviors
 and understand their effect on reliability, latency, and token usage.
 
-[NVIDIA NeMo Relay](https://docs.nvidia.com/nemo/relay/latest/getting-started/about)
+[NVIDIA NeMo Relay](https://docs.nvidia.com/nemo/relay/latest/about-nemo-relay/overview)
 provides visibility into and control over agent runs without requiring changes
 to the existing agent stack. It gives coding agents, applications, framework
 integrations, middleware, and observability backends a shared runtime for
 scopes, policy, plugins, and lifecycle events.
 
-[Hermes Agent](https://github.com/NousResearch/hermes-agent) includes Relay on
-supported platforms and maps its session, turn, LLM, and tool lifecycles to
-Relay. This tutorial configures Relay exporters through that native integration.
-It does not require a separate Hermes observability plugin, Relay CLI, or local
+[Hermes Agent](https://hermes-agent.nousresearch.com/) understands NeMo Relay
+plugin configurations. Relay is built into Hermes Agent without a separate
+observability plugin or Relay CLI setup. Its native SDK integration maps Hermes
+session, turn, LLM, and tool lifecycles to Relay. This tutorial uses that
+integration to load the Relay exporter configuration without starting a local
 gateway.
 
 This tutorial uses
@@ -28,13 +29,19 @@ for two Hermes Agent runs.
 
 1. Set up an isolated Hermes Agent runtime with its native NeMo Relay
    integration.
-2. Run the included Python script, verify its `VALUE=42` result, and inspect the
-   agent's event stream and trajectory.
-3. Ask Hermes to identify a conference from its dates, location, and subject,
-   save the verified result in a report, and use Phoenix to inspect each step of
-   the run.
-4. Optionally trace the same conference task with another compatible model.
-5. Use the trace evidence to evaluate a controlled prompt, tool, or harness
+2. Start with a simple terminal-tool example in which Hermes executes the
+   included Python script. Verify that the script returns the expected result.
+3. Next, run a research query that asks Hermes to read conference clues from a
+   file, find and verify the matching event on the web, and save the result in
+   a report.
+4. Then, inspect the Agent Trajectory Observability Format
+   ([ATOF](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atof))
+   event stream and Agent Trajectory Interchange Format
+   ([ATIF](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atif))
+   trajectory.
+5. Then, use an interactive observability tool to follow each step of the run.
+6. Optionally trace the same conference task with another compatible model.
+7. Use the trace evidence to evaluate a controlled prompt, tool, or harness
    change.
 
 ## Quick Start
@@ -89,14 +96,37 @@ docker version
 ./scripts/run_tutorial.sh
 ```
 
-**Success check:** Confirm that the output includes all of the following:
+**What you should see:** Hermes returns `VALUE=42`. The runner then validates
+the trace and prints the ATOF and ATIF summaries. One verified run ended with:
 
-- `Task verified: VALUE=42`
-- An ATOF summary with at least one completed LLM scope, a token total greater
-  than zero, and one tool call
-- An ATIF summary with the agent, model, and trajectory step count
-- `tool errors: 0`
-- An `Artifacts:` path under `artifacts/runs/`
+```text
+ATOF summary:
+trace: .../artifacts/runs/<run-id>/atof/run.jsonl
+events: 74
+completed llm scopes: 2
+llm scopes with usage: 2
+prompt tokens: 7239
+completion tokens: 96
+total tokens: 7335
+tool calls: 1
+tool errors: 0
+correlated events: 74
+
+ATIF summary:
+trajectory: .../artifacts/runs/<run-id>/atif/trajectory-<session-id>.json
+agent: Hermes Agent
+model: nvidia/nemotron-3.5-lightning-30b-a3b
+steps: 3
+llm calls: 2
+requested tool calls: 1
+
+Task verified: VALUE=42
+
+Artifacts: .../artifacts/runs/<run-id>
+```
+
+The counts, identifiers, and run directory vary between runs. The runner exits
+with an error if the result or trace validation fails.
 
 ### Why the Tutorial Uses Docker
 
@@ -109,6 +139,11 @@ network, repository checkout, or NVIDIA API key.
 After completing the Quick Start, continue with
 [the detailed tutorial](TUTORIAL.md) to find and verify a conference with file
 and web tools, then inspect each step of the agent's execution in Phoenix.
+
+## Source Repositories
+
+- [NVIDIA NeMo Relay](https://github.com/NVIDIA/NeMo-Relay)
+- [Hermes Agent](https://github.com/NousResearch/hermes-agent)
 
 ## License
 

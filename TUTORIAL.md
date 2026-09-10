@@ -15,21 +15,38 @@ a report. Relay also sends OpenInference-compatible trace data from this run to
 Phoenix so you can inspect its model and tool calls, token usage, duration, and
 errors.
 
-## Understand the Trace Outputs
+## Understand the Observability Outputs
 
-This tutorial uses three complementary trace views:
+These representations describe the same agent run in different ways:
 
-- **[ATOF](https://docs.nvidia.com/nemo/relay/latest/reference/atof-event-format):**
-  Review Relay's canonical scope lifecycle events and marks in the order they
-  occurred. The ATOF exporter writes this event stream to JSONL.
-- **[ATIF](https://github.com/harbor-framework/harbor/blob/main/rfcs/0001-trajectory-format.md):**
-  Review the run as an external, JSON-based agent trajectory. [Relay's ATIF
-  exporter](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atif)
-  groups the events from a run into agent steps, tool calls, and observations.
-- **[OpenInference](https://github.com/Arize-ai/openinference/blob/main/spec/README.md):**
-  Inspect the run interactively in Phoenix. [Relay's OpenInference
-  projection](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/openinference)
-  applies these OpenTelemetry semantic conventions when it exports trace data.
+| Representation | What it is | When to use it |
+| --- | --- | --- |
+| [ATOF](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atof) | A JSONL stream of agent lifecycle events. Each line records either the start or end of a scope, or a point-in-time mark, with the identifiers and timestamps needed to reconstruct the run. | Use ATOF for low-level debugging or auditing when you need individual lifecycle events, timestamps, and parent-child relationships. |
+| [ATIF](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atif) | A JSON step-based trajectory assembled from agent lifecycle events. It organizes the run into agent interaction steps, tool calls, and observations. | Use ATIF when you need a step-by-step record of the agent's path for human review, offline analysis, or evaluation. |
+| [OpenTelemetry](https://opentelemetry.io/docs/concepts/signals/traces/) and [OpenInference](https://github.com/Arize-ai/openinference/blob/main/spec/README.md) | OpenTelemetry represents the agent run as a parent-child hierarchy of spans. OpenInference defines how agent, LLM, and tool spans are labeled and which attributes describe them. | Use this representation when you want to explore a run in a tracing tool such as Phoenix and compare model and tool calls, duration, token usage, and errors. |
+
+Both exercises save ATOF and ATIF files locally, so you can inspect them
+directly. The conference exercise also uses [Relay's OpenInference
+projection](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/openinference)
+to create an OpenTelemetry trace. Relay sends that trace to [Arize
+Phoenix](https://arize.com/phoenix/), the observability platform used in this
+tutorial, over the [OpenTelemetry Protocol
+(OTLP)](https://opentelemetry.io/docs/specs/otlp/). OTLP is OpenTelemetry's
+protocol for sending telemetry to compatible backends. Phoenix receives the
+OpenTelemetry trace directly; it does not read the saved ATOF or ATIF files.
+
+This tutorial uses Phoenix, but the exported OpenTelemetry trace is not tied
+to it. To send the trace to another OTLP-compatible observability platform,
+such as [LangSmith](https://docs.langchain.com/langsmith/trace-with-opentelemetry),
+you only need to update the endpoint and authentication settings. The setup
+and trace view may vary by platform.
+
+ATIF is the easier view for following the agent's steps, but a tool request in
+the trajectory does not by itself prove that the tool ran. To confirm
+execution, find the matching tool-scope start and end events in ATOF. Their
+shared `uuid` pairs the two events, `parent_uuid` connects the tool scope to its
+parent, and the tool-call identifier links the model's request to the tool
+invocation when the integration supplies one.
 
 Relay supports additional exporters and configuration options. See the
 [NeMo Relay observability guide](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/about)
