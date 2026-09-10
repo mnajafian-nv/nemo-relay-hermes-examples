@@ -1,12 +1,36 @@
 # Trace Hermes Agent Runs with NeMo Relay
 
-Complete the [quick start](README.md#run-the-tutorial) before using this guide.
-The first exercise produces a local Agent Trajectory Observability Format (ATOF)
-event stream and Agent Trajectory Interchange Format (ATIF) trajectory. The
-second exercise adds a multi-tool research task and interactive trace analysis
-in Arize Phoenix.
+In this guide, you will examine an agent run in three ways: the raw ATOF event
+stream, an ATIF trajectory, and an OpenInference-compatible trace in Phoenix.
 
-## Inspect the Terminal-Task Traces
+## Understand the Trace Outputs
+
+- [ATOF](https://docs.nvidia.com/nemo/relay/latest/reference/atof-event-format)
+  is NeMo Relay's canonical event format for scope lifecycle events and marks.
+  Relay's ATOF exporter writes the raw, ordered event stream to JSONL.
+- [ATIF](https://github.com/harbor-framework/harbor/blob/main/rfcs/0001-trajectory-format.md)
+  is an external, JSON-based format for agent trajectories. [Relay's ATIF
+  exporter](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atif)
+  converts the events associated with a run into ATIF steps, tool calls, and
+  observations.
+- [OpenInference](https://github.com/Arize-ai/openinference/blob/main/spec/README.md)
+  defines semantic conventions for tracing AI applications with OpenTelemetry.
+  [Relay's OpenInference
+  projection](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/openinference)
+  applies those conventions when it exports OpenTelemetry trace data.
+
+See the
+[NeMo Relay observability guide](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/about)
+for other exporters and configuration options.
+
+> [!CAUTION]
+> Traces can include prompts, model responses, tool inputs and outputs, and file
+> paths. Review them before sharing.
+
+## Inspect the Terminal Task Traces
+
+Complete the [Quick Start](README.md#quick-start) before continuing. It runs the
+fixed terminal task and creates the ATOF and ATIF files used in this section.
 
 After the task finishes, the runner prints an `Artifacts:` path. That run
 directory contains:
@@ -23,39 +47,44 @@ events map to ATIF trajectory steps.
 
 ### Inspect a Saved Run
 
-To summarize and validate token usage for a saved run, replace
-`<run-directory>` with the path printed by the tutorial:
+To summarize and validate token usage for a saved run, set `RUN_DIRECTORY` to
+the path printed by the tutorial:
 
 ```bash
 HERMES_PYTHON=".tutorial-runtime/venv/bin/python"
+RUN_DIRECTORY="artifacts/runs/<timestamp-pid>"
 "$HERMES_PYTHON" scripts/summarize_atof.py \
-  <run-directory>/atof/run.jsonl \
+  "$RUN_DIRECTORY/atof/run.jsonl" \
   --require-token-usage
 "$HERMES_PYTHON" scripts/summarize_atif.py \
-  <run-directory>/atif/trajectory-*.json
+  "$RUN_DIRECTORY"/atif/trajectory-*.json
 ```
 
 The `Task verified: VALUE=42` line confirms the result. The two summaries show
 the model calls, tool calls, token usage, and trajectory steps for the run.
 
-> [!CAUTION]
-> Review traces before sharing them. They can contain prompts, tool arguments
-> and results, file paths, model output, and other application data.
+## Trace a Conference Research Task in Phoenix
 
-## Trace a Multi-Tool Research Task in Phoenix
+The Quick Start traced one terminal call. This exercise follows a longer Hermes
+run that combines file access with web research.
 
-The first exercise uses one terminal command. This exercise asks Hermes to use
-file and web tools. Hermes reads a fixed
-[conference travel record](conference-task/travel-record.md), finds the
-conference whose dates, location, and subject match the record, verifies the
-match on the official conference website, and saves a verification report.
+The input is a [travel record](conference-task/travel-record.md) for an unnamed
+conference in San Diego. It says that the traveler attended from June 29
+through July 3, 2026, and that the event focused on the theoretical foundations
+of machine learning. Hermes must:
 
-For this run, Relay saves the ATOF event stream and ATIF trajectory in the run
-directory. It also sends
-[OpenInference](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/openinference)
-spans to Phoenix over OTLP. Phoenix displays the OpenInference spans; it does
-not read the saved ATOF or ATIF files. Relay supports other subscribers and
-exporters, but the tutorial does not enable them.
+1. Read the travel record.
+2. Search for the conference that matches every constraint.
+3. Confirm the dates and location on the official conference website.
+4. Save the conference name, dates, location, and source URL to a report.
+5. Return only the conference name.
+
+During the run, Relay writes the ATOF event stream and ATIF trajectory to the
+run directory. Relay also sends OpenInference-compatible trace data to Phoenix
+over OTLP. Phoenix displays that trace data; it does not import the saved ATOF
+or ATIF files.
+
+### Prepare the Research Exercise
 
 If you completed the first exercise, your environment is ready. Otherwise,
 complete the setup steps through `./scripts/build_tutorial_image.sh`. You do
@@ -69,7 +98,7 @@ Phoenix image and starts a local container. The
 [Phoenix Docker guide](https://arize.com/docs/phoenix/self-hosting/deployment-options/docker)
 explains this deployment option.
 
-### Run the Research Task with Nemotron
+### Run the Research Task
 
 Run the research task:
 
@@ -89,7 +118,9 @@ Hermes uses its built-in keyless web search, so no Tavily key or other search
 credential is required. Because the search service is public, the task can fail
 if the service rate-limits the request.
 
-The runner verifies all of the following:
+### Check the Result
+
+The runner checks both the task result and the observability output:
 
 - The final answer is `COLT 2026`.
 - The saved report identifies `COLT 2026`, June 29 through July 3, 2026, San
@@ -97,8 +128,8 @@ The runner verifies all of the following:
 - The ATOF event stream contains successful `read_file`, `web_search`,
   `web_extract`, and `write_file` calls.
 - The runner creates a nonempty ATIF trajectory.
-- Phoenix receives the model and tool spans, and the model spans include token
-  usage.
+- Phoenix receives the model and tool spans and reports a positive token total
+  for the run.
 
 When verification passes, the script prints the Phoenix link and the run
 directory. The run directory is under
@@ -160,7 +191,7 @@ Select the final model call to inspect the response, duration, and token usage.
 
 [![Phoenix final model span showing the verified response, duration, and token usage](screenshots/phoenix-nemotron-final-llm-span.png)](screenshots/phoenix-nemotron-final-llm-span.png)
 
-### Run the Research Task with Another Model
+### Trace the Same Task with Another Model
 
 To inspect another model without changing the task or verifier, copy the model
 profile template:
@@ -180,46 +211,29 @@ and its value to `keys.env`, then run:
 
 The runner supports the `chat_completions`, `anthropic_messages`, and
 `codex_responses` API modes provided by Hermes. The selected endpoint must
-support tool use. These live-search runs are useful for inspecting agent
-behavior, not ranking models. A fair model comparison requires fixed inputs,
-fixed search results, and repeated runs.
+support tool use. These live-search runs are useful for exploring agent
+behavior, not ranking models. For a controlled comparison, follow
+[Evaluate a Harness Change](#evaluate-a-harness-change).
 
-### Claude Sonnet 5 Example
+#### Claude Sonnet 5 Example
 
-These screenshots illustrate the Phoenix view from running the same task with
-Claude Sonnet 5. You can configure your own compatible model endpoint to repeat
-the exercise. The
+These screenshots show the same conference research task with Claude Sonnet 5.
+The task and verifier remain unchanged; only the model configuration changes.
+Use the traces to compare the sequence of model and tool calls, token usage,
+duration, errors, and any cost reported by Phoenix. You can configure your own
+compatible model endpoint to repeat the exercise. The
 [result summary](results/conference-research-claude-sonnet-5.json) records the
-runtime, capture time, and verifier result. Phoenix reported five model calls,
-five tool calls, no tool errors, 60,059 tokens, and an estimated cost of
-`$0.053960`. This run used Hermes Agent `0.20.5` and NeMo Relay `0.7.2`. Its
-measurements are not directly comparable with the Nemotron run because the
-software versions and live search results differ.
+configuration and verifier result. Phoenix reported five model calls, five tool
+calls, no tool errors, 60,059 tokens, and an estimated cost of `$0.053960`.
 
 The trace tree shows the total estimated cost above the span list and token
 counts beside the model spans. Select the image to open it at full resolution.
 
 [![Phoenix trace tree showing total cost, token counts, and model, file, and web spans](screenshots/phoenix-trace-tree.png)](screenshots/phoenix-trace-tree.png)
 
-Open these full-resolution images to inspect the tool and final model calls:
-
-- [Inspect the Sonnet web-search query and results](screenshots/phoenix-web-search-span.png).
-- [Inspect the Sonnet final response and model-call metrics](screenshots/phoenix-final-llm-span.png).
-
-### Stop Phoenix
-
-When you finish, stop Phoenix and remove the tutorial container and its local
-trace data:
-
-```bash
-./scripts/stop_phoenix.sh
-```
-
-If you ran Phoenix on another port, set that port again when you stop it:
-
-```bash
-PHOENIX_UI_PORT=6007 ./scripts/stop_phoenix.sh
-```
+| Web-Search Call | Final Model Call |
+|---|---|
+| [![Phoenix web-search span showing the query and returned results](screenshots/phoenix-web-search-span.png)](screenshots/phoenix-web-search-span.png) | [![Phoenix final model span showing the response and model-call metrics](screenshots/phoenix-final-llm-span.png)](screenshots/phoenix-final-llm-span.png) |
 
 ## Evaluate a Harness Change
 
@@ -238,6 +252,21 @@ Use the following process to evaluate a change:
 The research exercise queries the live web, so its results can change between
 runs. Before using it for an A/B test, replace live search with a fixed fixture
 that returns the same responses in both configurations.
+
+## Stop Phoenix
+
+When you finish, stop Phoenix and remove the tutorial container and its local
+trace data:
+
+```bash
+./scripts/stop_phoenix.sh
+```
+
+If you ran Phoenix on another port, set that port again when you stop it:
+
+```bash
+PHOENIX_UI_PORT=6007 ./scripts/stop_phoenix.sh
+```
 
 ## Troubleshooting
 
