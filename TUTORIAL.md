@@ -5,7 +5,7 @@
 Example 1 in the [Quick Start](README.md#quick-start) confirms that Hermes can
 call the model and run a terminal command inside Docker. The next section
 explains the trace files created during that run and how to inspect them. You
-will then use the same environment for the conference task in Example 2.
+will then use the same environment for Example 2.
 
 ## Understand the Observability Outputs
 
@@ -82,41 +82,40 @@ The repository also includes a minimal
 
 ## Example 2: Find a Conference That Fits Your Travel Plans
 
+Now that you have verified the basic setup, use the same Hermes and Relay
+environment for a task that combines file access and web search.
+
 Imagine that you will be in San Diego from June 29 through July 3, 2026, and
 want to attend a conference about the theoretical foundations of machine
-learning. You know when and where you will be traveling, but you do not know
-which conference matches those requirements.
+learning. The included [`travel-plan.md`](conference-task/travel-plan.md) file
+lists the dates, location, and subject, but leaves out the conference name.
+Hermes must read the plan, search the web for a matching conference, confirm
+the dates and location on the official event website, and save the verified
+details in a report.
 
-The travel plan is recorded in
-[`travel-plan.md`](conference-task/travel-plan.md). Ask Hermes to read the plan,
-find a conference that matches the clues, and confirm the dates and location on
-the official event website. Hermes then saves the conference name, dates,
-location, and source URL in a report.
+During the run, Hermes uses `read_file`, `web_search`, `web_extract`, and
+`write_file`. The runner checks the final answer, saved report, and required
+tool calls. Phoenix displays the run as an interactive trace, where you can
+inspect the model and tool calls, timing, token usage, errors, and available
+inputs and outputs.
 
-Hermes uses `read_file`, `web_search`, `web_extract`, and `write_file` to
-complete the task. Afterward, the verifier checks the answer and report, and
-Phoenix shows the model and tool calls that led to the result.
-
-The Quick Start created the runtime and task image used here. The conference
-task also reuses its Nemotron model and `NVIDIA_API_KEY`, so you do not need
-another model configuration or credential.
-
-You do not need to install Phoenix separately. The script pulls the pinned
-Phoenix image and starts a local container. The
+This example reuses the Nemotron model and `NVIDIA_API_KEY` from Example 1.
+Hermes Agent includes keyless web search, so you do not need a separate search
+credential. The runner also starts Phoenix from a pinned Docker image, so you
+do not need to install Phoenix. The
 [Phoenix Docker guide](https://arize.com/docs/phoenix/self-hosting/deployment-options/docker)
 explains this deployment option.
 
-### Run the Conference Query
+### Run Example 2
 
-Hermes uses its built-in keyless web search, so you do not need a Tavily key or
-another search credential. Start the task:
+Run the following command:
 
 ```bash
 ./scripts/run_conference_research_with_phoenix.sh
 ```
 
-Phoenix uses port `6006` by default. If that port is already in use, run the
-conference search on another local port. The script does not stop or replace the
+Phoenix uses port `6006` by default. If that port is already in use, run
+Example 2 on another local port. The script does not stop or replace the
 existing service.
 
 ```bash
@@ -202,8 +201,8 @@ Select the final model call to inspect the response, duration, and token usage.
 
 ### Try the Same Task with Another Model
 
-To repeat the conference task with another model without changing the task or
-verifier, copy the model profile template:
+To repeat Example 2 with another model without changing the task or verifier,
+copy the model profile template:
 
 ```bash
 cp config/model_profile.env.example model-profile.env
@@ -226,11 +225,11 @@ behavior, not ranking models. For a controlled comparison, follow
 
 #### Claude Sonnet 5 Example
 
-These screenshots show the same conference task with Claude Sonnet 5.
-The task and verifier remain unchanged; only the model configuration changes.
-Use the traces to compare the sequence of model and tool calls, token usage,
-duration, errors, and any cost reported by Phoenix. You can configure your own
-compatible model endpoint to repeat the conference task. The
+These screenshots show Example 2 with Claude Sonnet 5. The task and verifier
+remain unchanged; only the model configuration changes. Use the traces to
+compare the sequence of model and tool calls, token usage, duration, errors,
+and any cost reported by Phoenix. You can configure your own compatible model
+endpoint to repeat Example 2. The
 [result summary](results/conference-research-claude-sonnet-5.json) records the
 configuration and verifier result. Phoenix reported five model calls, five tool
 calls, no tool errors, 60,059 tokens, and an estimated cost of `$0.053960`.
@@ -244,23 +243,35 @@ counts beside the model spans. Select the image to open it at full resolution.
 |---|---|
 | [![Phoenix web-search span showing the query and returned results](screenshots/phoenix-web-search-span.png)](screenshots/phoenix-web-search-span.png) | [![Phoenix final model span showing the response and model-call metrics](screenshots/phoenix-final-llm-span.png)](screenshots/phoenix-final-llm-span.png) |
 
-## Use Traces to Evaluate a Change
+## Use Traces to Evaluate a Harness Change
 
-Keep the task and verifier fixed while you test one change:
+The two examples show how to verify a result and inspect one agent run. To
+determine whether a change improves the harness, repeat those checks under
+controlled conditions:
 
-1. Choose one change, such as a different prompt, a tool description, or a
-   retry policy, and decide how many times to run each configuration.
-2. Run the current configuration to establish the baseline.
-3. Apply only the chosen change and repeat the task the same number of times.
-4. Keep the model version, endpoint, input files, available tools, turn limit,
-   and run budget unchanged. Use the same seed and sampling settings when the
-   model provider and agent harness support them.
-5. Compare task success first. Then compare model calls, tool calls, errors,
-   token usage, total duration, and estimated cost if Phoenix reports one.
+1. **Pick a task you can grade automatically.** Decide what result counts as a
+   success, then choose one prompt, tool, configuration, or harness behavior to
+   change.
+2. **Establish a baseline.** Run the current version several times and save the
+   verifier results and Relay traces from every run.
+3. **Change one thing and run the task again.** Use the same number of runs and
+   keep the model version, endpoint, task input, tools, limits, and timeout the
+   same. Reuse the seed and sampling settings when the provider supports them.
+4. **Compare the outcomes before the traces.** Check how often each version
+   completed the task. Then use the traces to understand differences in model
+   calls, tool calls, retries, errors, duration, token usage, and cost.
+5. **Check that the result holds.** Repeat the comparison with the other models
+   or workloads that the change is expected to support.
 
-The conference task queries the live web, so its results can change between
-runs. Before using it for an A/B test, replace live search with a fixed fixture
-that returns the same responses in both configurations.
+Treat a change as an improvement only when the result holds across repeated
+runs. It should either complete more tasks or preserve task completion while
+consistently improving the reliability, latency, or cost measure you targeted.
+A single faster run or one run with fewer calls is useful evidence, but it is
+not enough to establish an improvement.
+
+Example 2 is useful for learning this process, but it is not a controlled
+benchmark because live search results can change. To reuse it for an A/B test,
+capture the search responses and give both versions the same fixed responses.
 
 ## Stop Phoenix
 

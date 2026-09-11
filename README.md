@@ -9,15 +9,15 @@ retries, and extra model calls. Tracing the run helps you find these behaviors
 and understand their effect on reliability, latency, and token usage.
 
 [NVIDIA NeMo Relay](https://docs.nvidia.com/nemo/relay/latest/about-nemo-relay/overview)
-provides visibility into and control over agent runs without requiring changes
-to the existing agent stack. It gives coding agents, applications, framework
-integrations, middleware, and observability backends a shared runtime for
-scopes, policy, plugins, and lifecycle events.
+gives agent developers a common way to observe and control model and tool
+execution. [Hermes Agent](https://hermes-agent.nousresearch.com/) includes Relay
+natively and maps its sessions, turns, model calls, and tool calls to Relay's
+scope hierarchy. Relay records lifecycle events as that work begins and ends,
+preserving timing and parent-child relationships.
 
-[Hermes Agent](https://hermes-agent.nousresearch.com/) understands NeMo Relay
-plugin configurations. NeMo Relay is built into Hermes Agent, so no separate
-observability plugin or Relay CLI setup is required. This tutorial uses that
-built-in integration to load Relay exporters without starting a local gateway.
+This tutorial uses Hermes Agent's built-in Relay integration to configure the
+ATOF, ATIF, and OpenInference exporters. It does not require a separate
+observability plugin, the Relay CLI, or a local gateway.
 
 Both examples use
 [NVIDIA Nemotron 3.5 Lightning](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b).
@@ -76,7 +76,18 @@ NVIDIA_API_KEY=<your-nvidia-api-key>
 
 ### Example 1: Run and Trace a Terminal Task
 
-Verify Docker, build the task image, and run the tutorial:
+Start with a small, predictable task to confirm that the setup works before
+moving to the more realistic scenario in Example 2. The included
+[`sample.py`](sample-project/sample.py) script contains one statement:
+`print("VALUE=42")`. Hermes sends Nemotron 3.5 Lightning an instruction to run
+that file. To complete the task, the model must request Hermes Agent's terminal
+tool, which executes the script inside an isolated Docker container.
+
+The runner checks that Hermes returns the exact output `VALUE=42`. A passing
+run confirms that the model call, terminal-tool execution, Docker sandbox, and
+Relay trace exporters all worked together.
+
+Confirm that Docker is running, build the task image, and start the example:
 
 ```bash
 # Confirm that the Docker client can reach the Docker service.
@@ -128,16 +139,14 @@ Hermes can execute terminal commands, so this tutorial runs them in an isolated
 Docker container instead of on your host. The container cannot access the
 network, repository checkout, or NVIDIA API key.
 
-## Continue to Example 2
+## Explore Agent Traces and Run Example 2
 
-Next, try [Example 2](TUTORIAL.md). Hermes reads a travel plan, searches the web
-for a conference that fits the dates and subject, saves the result, and lets
-you explore the run in Phoenix.
-
-## Source Repositories
-
-- [NVIDIA NeMo Relay](https://github.com/NVIDIA/NeMo-Relay)
-- [Hermes Agent](https://github.com/NousResearch/hermes-agent)
+After Example 1 succeeds, continue with the [detailed tutorial](TUTORIAL.md).
+Start by examining its ATOF event stream and ATIF trajectory. In Example 2,
+Hermes uses the same setup to read a travel plan, search for a matching
+conference, verify it on the official event website, and save a report. You
+will then open the OpenTelemetry trace in Phoenix to inspect the model and tool
+calls, timing, token usage, errors, and available inputs and outputs.
 
 ## License
 
