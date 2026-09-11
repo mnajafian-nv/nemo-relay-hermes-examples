@@ -11,7 +11,7 @@ import verify_conference_research
 
 EXPECTED_NAME = "COLT 2026"
 EXPECTED_SOURCE = "https://learningtheory.org/colt2026"
-EXPECTED_READ_PATH = "/input/travel-record.md"
+EXPECTED_READ_PATH = "/input/travel-plan.md"
 EXPECTED_WRITE_PATH = "/output/conference-verification.md"
 
 

@@ -155,7 +155,7 @@ docker image inspect "$docker_image" >/dev/null 2>&1 || {
 project_name="$PHOENIX_PROJECT_PREFIX-conference-$profile-$(date -u +%Y%m%dT%H%M%SZ)-$$"
 
 mkdir -p "$input_directory" "$output_directory"
-cp "$repo_root/conference-task/travel-record.md" "$input_directory/travel-record.md"
+cp "$repo_root/conference-task/travel-plan.md" "$input_directory/travel-plan.md"
 "$hermes_python" "$repo_root/scripts/render_relay_config.py" \
   --output "$plugins_path" \
   --output-directory "$run_root" \
@@ -226,7 +226,7 @@ if grep -Eq 'No reply:|maximum tool-iteration|Reached maximum iterations' "$outp
   exit 1
 fi
 
-cmp -s "$repo_root/conference-task/travel-record.md" "$input_directory/travel-record.md" || {
+cmp -s "$repo_root/conference-task/travel-plan.md" "$input_directory/travel-plan.md" || {
   echo "The read-only task input changed unexpectedly." >&2
   exit 1
 }
@@ -241,7 +241,7 @@ test -n "$trajectory_path"
   "$trace_path" \
   --expected-name "$CONFERENCE_RESEARCH_EXPECTED_NAME" \
   --expected-source-prefix "$CONFERENCE_RESEARCH_EXPECTED_SOURCE_PREFIX" \
-  --expected-read-path /input/travel-record.md \
+  --expected-read-path /input/travel-plan.md \
   --expected-write-path /output/conference-verification.md
 
 printf '\nATOF summary:\n'

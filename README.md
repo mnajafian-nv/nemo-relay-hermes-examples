@@ -19,25 +19,19 @@ plugin configurations. NeMo Relay is built into Hermes Agent, so no separate
 observability plugin or Relay CLI setup is required. This tutorial uses that
 built-in integration to load Relay exporters without starting a local gateway.
 
-This tutorial uses
-[NVIDIA Nemotron 3.5 Lightning](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b)
-in two examples. The first verifies the setup with a fixed terminal task. The
-second uses file and web tools to identify a conference and opens the resulting
-trace in [Arize Phoenix](https://arize.com/phoenix/).
+Both examples use
+[NVIDIA Nemotron 3.5 Lightning](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b).
 
 **In this tutorial, you will:**
 
-1. Set up an isolated Hermes Agent runtime with its native NeMo Relay
+1. Set up an isolated environment for Hermes Agent and its built-in NeMo Relay
    integration.
-2. Run a fixed terminal task and inspect its Agent Trajectory Observability Format
-   ([ATOF](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atof))
-   event stream and Agent Trajectory Interchange Format
-   ([ATIF](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atif))
-   trajectory.
-3. Run a file-and-web research task and explore its OpenTelemetry trace in
-   Phoenix.
-4. Use the traces and verifier to evaluate one controlled prompt, tool, or
-   harness change.
+2. Ask Hermes to run a small Python script, verify the expected result, and
+   inspect the resulting ATOF event stream and ATIF trajectory.
+3. Ask Hermes to find a conference that fits a travel plan, save a verified
+   report, and explore the run in Phoenix.
+4. Learn how to combine task verification with trace data when evaluating a
+   controlled change to the prompt, tools, or agent harness.
 
 ## Quick Start
 
@@ -95,8 +89,9 @@ docker version
 ./scripts/run_tutorial.sh
 ```
 
-**What you should see:** Hermes returns `VALUE=42`. The runner then validates
-the trace and prints the ATOF and ATIF summaries. One verified run ended with:
+**What you should see:** On a successful run, Hermes returns `VALUE=42`. The
+runner validates the result and trace files, then prints their ATOF and ATIF
+summaries. One verified run produced:
 
 ```text
 ATOF summary:
@@ -135,9 +130,9 @@ network, repository checkout, or NVIDIA API key.
 
 ## Continue to Example 2
 
-Example 2 reuses the runtime created during the Quick Start. Continue with
-[the detailed tutorial](TUTORIAL.md) to identify and verify a conference with
-file and web tools, then inspect the agent run in Phoenix.
+Next, try [Example 2](TUTORIAL.md). Hermes reads a travel plan, searches the web
+for a conference that fits the dates and subject, saves the result, and lets
+you explore the run in Phoenix.
 
 ## Source Repositories
 
