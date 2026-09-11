@@ -1,13 +1,13 @@
-# Example Relay Artifacts
+# Example ATOF and ATIF Files
 
-These files are minimal teaching artifacts for the terminal task in this
+These files are minimal trace examples for the terminal task in this
 repository. They show the two Relay formats produced by the tutorial without
 duplicating every event from a live run, so you can inspect the event and
 trajectory shapes before calling a model.
 
 The examples include the task, requested command, and verified result. They
 use stable example identifiers instead of values from one machine's execution.
-Run the tutorial to create the complete artifacts for your own execution.
+Run the tutorial to create the complete trace files for your own execution.
 
 | File | Use it to inspect |
 | --- | --- |

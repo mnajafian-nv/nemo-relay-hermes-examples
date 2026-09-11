@@ -194,7 +194,7 @@ unset EXA_API_KEY PARALLEL_API_KEY TAVILY_API_KEY TAVILY_BASE_URL
 unset FIRECRAWL_API_KEY FIRECRAWL_API_URL FIRECRAWL_GATEWAY_URL
 unset SEARXNG_URL BRAVE_SEARCH_API_KEY TOOL_GATEWAY_DOMAIN
 
-# File tools use the same constrained Docker backend as the first exercise.
+# File tools use the same constrained Docker backend as Example 1.
 # Mount the fixed input read-only, mount a separate output directory read/write,
 # and prevent file-tool writes anywhere else.
 # shellcheck disable=SC1091

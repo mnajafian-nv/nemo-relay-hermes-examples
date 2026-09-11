@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the result and saved file for the conference-research exercise."""
+"""Verify the result and saved file for the conference-research example."""
 
 from __future__ import annotations
 

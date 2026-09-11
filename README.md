@@ -15,36 +15,33 @@ integrations, middleware, and observability backends a shared runtime for
 scopes, policy, plugins, and lifecycle events.
 
 [Hermes Agent](https://hermes-agent.nousresearch.com/) understands NeMo Relay
-plugin configurations. Relay is built into Hermes Agent without a separate
-observability plugin or Relay CLI setup. Its native SDK integration maps Hermes
-session, turn, LLM, and tool lifecycles to Relay. This tutorial uses that
-integration to load the Relay exporter configuration without starting a local
-gateway.
+plugin configurations. NeMo Relay is built into Hermes Agent, so no separate
+observability plugin or Relay CLI setup is required. This tutorial uses that
+built-in integration to load Relay exporters without starting a local gateway.
 
 This tutorial uses
 [NVIDIA Nemotron 3.5 Lightning](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b)
-for two Hermes Agent runs.
+in two examples. The first verifies the setup with a fixed terminal task. The
+second uses file and web tools to identify a conference and opens the resulting
+trace in [Arize Phoenix](https://arize.com/phoenix/).
 
 **In this tutorial, you will:**
 
 1. Set up an isolated Hermes Agent runtime with its native NeMo Relay
    integration.
-2. Start with a simple terminal-tool example in which Hermes executes the
-   included Python script. Verify that the script returns the expected result.
-3. Next, run a research query that asks Hermes to read conference clues from a
-   file, find and verify the matching event on the web, and save the result in
-   a report.
-4. Then, inspect the Agent Trajectory Observability Format
+2. Run a fixed terminal task and inspect its Agent Trajectory Observability Format
    ([ATOF](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atof))
    event stream and Agent Trajectory Interchange Format
    ([ATIF](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atif))
    trajectory.
-5. Then, use an interactive observability tool to follow each step of the run.
-6. Optionally trace the same conference task with another compatible model.
-7. Use the trace evidence to evaluate a controlled prompt, tool, or harness
-   change.
+3. Run a file-and-web research task and explore its OpenTelemetry trace in
+   Phoenix.
+4. Use the traces and verifier to evaluate one controlled prompt, tool, or
+   harness change.
 
 ## Quick Start
+
+### Set Up the Tutorial
 
 The setup script creates `.tutorial-runtime/` and installs Hermes Agent `0.21.1`
 with the NeMo Relay `0.8.3` version pinned by Hermes. It does not change your
@@ -82,6 +79,8 @@ ignores this file, and editing it keeps the key out of your shell history.
 ```ini
 NVIDIA_API_KEY=<your-nvidia-api-key>
 ```
+
+### Example 1: Run and Trace a Terminal Task
 
 Verify Docker, build the task image, and run the tutorial:
 
@@ -128,17 +127,17 @@ Artifacts: .../artifacts/runs/<run-id>
 The counts, identifiers, and run directory vary between runs. The runner exits
 with an error if the result or trace validation fails.
 
-### Why the Tutorial Uses Docker
+### Why the Task Runs in Docker
 
 Hermes can execute terminal commands, so this tutorial runs them in an isolated
 Docker container instead of on your host. The container cannot access the
 network, repository checkout, or NVIDIA API key.
 
-## Continue with the Full Tutorial
+## Continue to Example 2
 
-After completing the Quick Start, continue with
-[the detailed tutorial](TUTORIAL.md) to find and verify a conference with file
-and web tools, then inspect each step of the agent's execution in Phoenix.
+Example 2 reuses the runtime created during the Quick Start. Continue with
+[the detailed tutorial](TUTORIAL.md) to identify and verify a conference with
+file and web tools, then inspect the agent run in Phoenix.
 
 ## Source Repositories
 

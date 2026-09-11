@@ -6,7 +6,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/config/phoenix.env"
 
 command -v docker >/dev/null || {
-  echo "Docker is required to run the optional Phoenix walkthrough." >&2
+  echo "Docker is required to run Example 2 in Phoenix." >&2
   exit 1
 }
 docker info >/dev/null 2>&1 || {

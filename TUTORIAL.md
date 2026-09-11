@@ -2,18 +2,12 @@
 
 ## Overview
 
-When the [Quick Start](README.md#quick-start) finishes, it prints
-`Task verified: VALUE=42` and the `Artifacts:` path for the run. Use the ATOF
-and ATIF files in that directory to examine the model and terminal tool calls
-made during the task.
-
-After inspecting the first run, run a second
-[Hermes Agent](https://github.com/NousResearch/hermes-agent) task that combines
-file access with web search. Hermes reads a travel record, identifies a
-conference, verifies the answer on the official conference website, and saves
-a report. Relay also sends OpenInference-compatible trace data from this run to
-Phoenix so you can inspect its model and tool calls, token usage, duration, and
-errors.
+Example 1 in the [Quick Start](README.md#quick-start) confirms that Hermes can
+call the model, run the terminal tool inside the Docker sandbox, and produce
+ATOF and ATIF files. Begin by inspecting those files, then reuse the same
+environment for Example 2. Hermes then reads conference clues
+from a file, searches the web, verifies the answer on the official conference
+website, and saves a report.
 
 ## Understand the Observability Outputs
 
@@ -23,10 +17,17 @@ These representations describe the same agent run in different ways:
 | --- | --- | --- |
 | [ATOF](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atof) | A JSONL stream of agent lifecycle events. Each line records either the start or end of a scope, or a point-in-time mark, with the identifiers and timestamps needed to reconstruct the run. | Use ATOF for low-level debugging or auditing when you need individual lifecycle events, timestamps, and parent-child relationships. |
 | [ATIF](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/atif) | A JSON step-based trajectory assembled from agent lifecycle events. It organizes the run into agent interaction steps, tool calls, and observations. | Use ATIF when you need a step-by-step record of the agent's path for human review, offline analysis, or evaluation. |
-| [OpenTelemetry](https://opentelemetry.io/docs/concepts/signals/traces/) and [OpenInference](https://github.com/Arize-ai/openinference/blob/main/spec/README.md) | OpenTelemetry represents the agent run as a parent-child hierarchy of spans. OpenInference defines how agent, LLM, and tool spans are labeled and which attributes describe them. | Use this representation when you want to explore a run in a tracing tool such as Phoenix and compare model and tool calls, duration, token usage, and errors. |
+| [OpenTelemetry](https://opentelemetry.io/docs/concepts/signals/traces/) with [OpenInference](https://github.com/Arize-ai/openinference/blob/main/spec/README.md) | OpenTelemetry represents the agent run as a parent-child hierarchy of spans. OpenInference defines how agent, LLM, and tool spans are labeled and which attributes describe them. | Use this view to explore a run in a tracing tool such as Phoenix and compare model and tool calls, duration, token usage, and errors. |
 
-Both exercises save ATOF and ATIF files locally, so you can inspect them
-directly. The conference exercise also uses [Relay's OpenInference
+Both examples save ATOF and ATIF files locally, so you can inspect them
+directly. An ATIF tool request shows what the model asked to run, but it does
+not confirm the outcome. To verify what happened, inspect ATOF for the matching
+tool start and end events and any recorded error. Their shared `uuid` pairs the
+events, `parent_uuid` connects the tool call to its parent, and the tool-call
+identifier links the model's request to the invocation when the integration
+supplies one.
+
+Example 2 also uses [Relay's OpenInference
 projection](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/openinference)
 to create an OpenTelemetry trace. Relay sends that trace to [Arize
 Phoenix](https://arize.com/phoenix/), the observability platform used in this
@@ -41,13 +42,6 @@ such as [LangSmith](https://docs.langchain.com/langsmith/trace-with-opentelemetr
 you only need to update the endpoint and authentication settings. The setup
 and trace view may vary by platform.
 
-ATIF is the easier view for following the agent's steps, but a tool request in
-the trajectory does not by itself prove that the tool ran. To confirm
-execution, find the matching tool-scope start and end events in ATOF. Their
-shared `uuid` pairs the two events, `parent_uuid` connects the tool scope to its
-parent, and the tool-call identifier links the model's request to the tool
-invocation when the integration supplies one.
-
 Relay supports additional exporters and configuration options. See the
 [NeMo Relay observability guide](https://docs.nvidia.com/nemo/relay/latest/configure-plugins/observability/about)
 for details about the available outputs and configuration.
@@ -56,9 +50,10 @@ for details about the available outputs and configuration.
 > Traces can include prompts, model responses, tool inputs and outputs, and file
 > paths. Review them before sharing.
 
-## Inspect the Terminal Task Traces
+## Review the Example 1 Trace Files
 
-The `Artifacts:` directory printed by the Quick Start contains:
+The Quick Start prints an `Artifacts:` path for the run. That directory
+contains:
 
 - `atof/run.jsonl`, the raw, ordered lifecycle event stream.
 - `atif/trajectory-*.json`, the run organized into agent steps, tool calls, and
@@ -87,9 +82,9 @@ For a smaller reference, compare the generated files with the repository's
 [ATIF example](examples/terminal-task.atif.json), and
 [example walkthrough](examples/README.md).
 
-## Run a Conference Search and Inspect Its Trace in Phoenix
+## Example 2: Identify a Conference and Inspect the Run in Phoenix
 
-This task combines file access with web search. You will give Hermes a
+Example 2 combines file access with web search. You will give Hermes a
 [travel record](conference-task/travel-record.md) that omits the conference
 name. The record says that the traveler attended a conference in San Diego from
 June 29 through July 3, 2026, about the theoretical foundations of machine
@@ -103,13 +98,6 @@ To complete the task, Hermes must:
 4. Save the conference name, dates, location, and source URL in a report.
 5. Return only the conference name.
 
-During the run, Relay writes the ATOF event stream and ATIF trajectory to the
-run directory. Relay also sends OpenInference-compatible trace data to Phoenix
-over OTLP. Phoenix displays that trace data; it does not import the saved ATOF
-or ATIF files.
-
-### Check Your Setup
-
 The Quick Start created the runtime and task image used here. The conference
 task also reuses its Nemotron model and `NVIDIA_API_KEY`, so you do not need
 another model configuration or credential.
@@ -119,7 +107,12 @@ Phoenix image and starts a local container. The
 [Phoenix Docker guide](https://arize.com/docs/phoenix/self-hosting/deployment-options/docker)
 explains this deployment option.
 
-### Run the Conference Search
+During the run, Relay writes the ATOF event stream and ATIF trajectory to the
+run directory. Relay's OpenInference projection also sends OpenTelemetry spans
+to Phoenix over OTLP. Phoenix displays those spans; it does not import the
+saved ATOF or ATIF files.
+
+### Run the Conference Query
 
 Hermes uses its built-in keyless web search, so you do not need a Tavily key or
 another search credential. Start the task:
@@ -139,7 +132,7 @@ PHOENIX_UI_PORT=6007 ./scripts/run_conference_research_with_phoenix.sh
 Because the search service is public, the task can fail if the service
 rate-limits the request.
 
-### Check the Result
+### Verify the Result
 
 The runner checks both the task result and the trace outputs:
 
@@ -159,7 +152,7 @@ verification report, ATOF events, and ATIF trajectory. The file tools can read
 the task input and write only to a separate output directory. The Docker
 container never receives your API key.
 
-### Example Result
+### Review One Verified Run
 
 In one verified run with Hermes Agent `0.21.1`, NeMo Relay `0.8.3`, and Nemotron
 3.5 Lightning, the
@@ -169,7 +162,7 @@ calls, four tool calls, no tool errors, and 40,294 tokens over 33.9 seconds. It
 did not calculate a cost because no pricing information was available for the
 model.
 
-### Explore the Agent Run in Phoenix
+### Explore the Run in Phoenix
 
 Open [Phoenix](http://localhost:6006/projects) in your browser. If you selected
 a different port, use that port instead of `6006`. The trace tree appears on the
@@ -212,7 +205,7 @@ Select the final model call to inspect the response, duration, and token usage.
 
 [![Phoenix final model span showing the verified response, duration, and token usage](screenshots/phoenix-nemotron-final-llm-span.png)](screenshots/phoenix-nemotron-final-llm-span.png)
 
-### Trace the Same Task with Another Model
+### Try the Same Task with Another Model
 
 To repeat the conference task with another model without changing the task or
 verifier, copy the model profile template:
@@ -276,8 +269,7 @@ that returns the same responses in both configurations.
 
 ## Stop Phoenix
 
-When you finish, stop Phoenix and remove the tutorial container and its local
-trace data:
+When you finish, stop and remove the tutorial's Phoenix container:
 
 ```bash
 ./scripts/stop_phoenix.sh
