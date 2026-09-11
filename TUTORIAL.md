@@ -3,11 +3,9 @@
 ## Overview
 
 Example 1 in the [Quick Start](README.md#quick-start) confirms that Hermes can
-call the model, run the terminal tool inside the Docker sandbox, and produce
-ATOF and ATIF files. Begin by inspecting those files, then reuse the same
-environment for Example 2. Hermes then reads conference clues
-from a file, searches the web, verifies the answer on the official conference
-website, and saves a report.
+call the model and run a terminal command inside Docker. The next section
+explains the trace files created during that run and how to inspect them. You
+will then use the same environment for the conference task in Example 2.
 
 ## Understand the Observability Outputs
 
@@ -77,26 +75,27 @@ RUN_DIRECTORY="artifacts/runs/<timestamp-pid>"
 The `Task verified: VALUE=42` line confirms the result. The two summaries show
 the model calls, tool calls, token usage, and trajectory steps for the run.
 
-For a smaller reference, compare the generated files with the repository's
-[ATOF example](examples/terminal-task.atof.jsonl), matching
-[ATIF example](examples/terminal-task.atif.json), and
-[example walkthrough](examples/README.md).
+The repository also includes a minimal
+[ATOF example](examples/terminal-task.atof.jsonl), its matching
+[ATIF example](examples/terminal-task.atif.json), and an
+[example walkthrough](examples/README.md) that highlights the key fields.
 
-## Example 2: Identify a Conference and Inspect the Run in Phoenix
+## Example 2: Find a Conference That Fits Your Travel Plans
 
-Example 2 combines file access with web search. You will give Hermes a
-[travel record](conference-task/travel-record.md) that omits the conference
-name. The record says that the traveler attended a conference in San Diego from
-June 29 through July 3, 2026, about the theoretical foundations of machine
-learning.
+Imagine that you will be in San Diego from June 29 through July 3, 2026, and
+want to attend a conference about the theoretical foundations of machine
+learning. You know when and where you will be traveling, but you do not know
+which conference matches those requirements.
 
-To complete the task, Hermes must:
+The travel plan is recorded in
+[`travel-plan.md`](conference-task/travel-plan.md). Ask Hermes to read the plan,
+find a conference that matches the clues, and confirm the dates and location on
+the official event website. Hermes then saves the conference name, dates,
+location, and source URL in a report.
 
-1. Read the travel record.
-2. Search for a conference matching the subject, dates, and location.
-3. Confirm the dates and location on the official conference website.
-4. Save the conference name, dates, location, and source URL in a report.
-5. Return only the conference name.
+Hermes uses `read_file`, `web_search`, `web_extract`, and `write_file` to
+complete the task. Afterward, the verifier checks the answer and report, and
+Phoenix shows the model and tool calls that led to the result.
 
 The Quick Start created the runtime and task image used here. The conference
 task also reuses its Nemotron model and `NVIDIA_API_KEY`, so you do not need
@@ -106,11 +105,6 @@ You do not need to install Phoenix separately. The script pulls the pinned
 Phoenix image and starts a local container. The
 [Phoenix Docker guide](https://arize.com/docs/phoenix/self-hosting/deployment-options/docker)
 explains this deployment option.
-
-During the run, Relay writes the ATOF event stream and ATIF trajectory to the
-run directory. Relay's OpenInference projection also sends OpenTelemetry spans
-to Phoenix over OTLP. Phoenix displays those spans; it does not import the
-saved ATOF or ATIF files.
 
 ### Run the Conference Query
 
@@ -158,7 +152,7 @@ In one verified run with Hermes Agent `0.21.1`, NeMo Relay `0.8.3`, and Nemotron
 3.5 Lightning, the
 [result summary](results/conference-research-nemotron-3.5-lightning.json)
 records the configuration and verifier result. Phoenix received five model
-calls, four tool calls, no tool errors, and 40,294 tokens over 33.9 seconds. It
+calls, four tool calls, no tool errors, and 31,554 tokens over 46.3 seconds. It
 did not calculate a cost because no pricing information was available for the
 model.
 
@@ -169,7 +163,7 @@ a different port, use that port instead of `6006`. The trace tree appears on the
 left, and selecting a model or tool call opens its details on the right.
 
 Start with the first and final model calls. The first call shows the request to
-read the travel record, find the matching conference, verify it on an official
+read the travel plan, find the matching conference, verify it on an official
 website, and save a report. In a successful run, the final call returns
 `COLT 2026`.
 
@@ -177,7 +171,8 @@ Expand the trace tree and select the calls between the first and final model
 calls in order. A model call shows the request Hermes sent, the model's
 response, and any tool calls requested by the model. A tool call shows the
 arguments generated by the model and the result returned by the tool. For a
-failed run, open the last successful call and inspect the next call or error.
+failed run, start with the final completed span and look for an error, a missing
+tool call, or an unexpected result.
 
 Compare the token counts and durations shown beside the model calls. If one
 call stands out, open it and check its request for repeated context. Then check
@@ -295,7 +290,3 @@ PHOENIX_UI_PORT=6007 ./scripts/stop_phoenix.sh
 
 - **The tutorial image is unavailable:** Run
   `./scripts/build_tutorial_image.sh`, then rerun the tutorial.
-
-- **Hermes reaches the turn limit:** Inspect the saved ATOF event stream for
-  repeated model calls, tool calls, or errors. If the run appears in Phoenix,
-  open the final completed call and inspect the next span or error.
