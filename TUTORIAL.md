@@ -2,10 +2,15 @@
 
 ## Overview
 
-Example 1 in the [Quick Start](README.md#quick-start) confirms that Hermes can
-call the model and run a terminal command inside Docker. The next section
-explains the trace files created during that run and how to inspect them. You
-will then use the same environment for Example 2.
+This guide picks up after Example 1 in the
+[Quick Start](README.md#quick-start). In the next section, you will learn how
+ATOF, ATIF, and OpenTelemetry with OpenInference provide different views of an
+agent's lifecycle and inspect the ATOF event stream and ATIF trajectory from
+Example 1. After learning about these traces, you will run Example 2 using the
+same environment. In this more realistic task, Hermes reads a travel plan,
+finds and verifies a matching conference, and saves a report. You will then
+open the run in Phoenix and follow its model and tool calls, timing, token
+usage, errors, and captured inputs and outputs.
 
 ## Understand the Observability Outputs
 

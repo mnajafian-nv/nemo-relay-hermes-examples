@@ -15,13 +15,6 @@ natively and maps its sessions, turns, model calls, and tool calls to Relay's
 scope hierarchy. Relay records lifecycle events as that work begins and ends,
 preserving timing and parent-child relationships.
 
-This tutorial uses Hermes Agent's built-in Relay integration to configure the
-ATOF, ATIF, and OpenInference exporters. It does not require a separate
-observability plugin, the Relay CLI, or a local gateway.
-
-Both examples use
-[NVIDIA Nemotron 3.5 Lightning](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b).
-
 **In this tutorial, you will:**
 
 1. Set up an isolated environment for Hermes Agent and its built-in NeMo Relay
@@ -35,23 +28,19 @@ Both examples use
 
 ## Quick Start
 
-### Set Up the Tutorial
+Before you begin, make sure you have:
 
-The setup script creates `.tutorial-runtime/` and installs Hermes Agent `0.21.1`
-with the NeMo Relay `0.8.3` version pinned by Hermes. It does not change your
-existing Hermes installation.
-
-Before you begin:
-
-- Use macOS or Linux.
-- Install [Git](https://git-scm.com/downloads),
+- A macOS or Linux system.
+- [Git](https://git-scm.com/downloads),
   [curl](https://curl.se/download.html), and
-  [Docker](https://docs.docker.com/get-started/get-docker/), and start Docker.
-- Generate an API key from the
+  [Docker](https://docs.docker.com/get-started/get-docker/), with Docker running.
+- An API key from the
   [Nemotron 3.5 Lightning model page](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b)
   on NVIDIA Build.
 
-Clone the repository and create the isolated runtime:
+### Set Up the Tutorial
+
+Run these commands in order:
 
 ```bash
 # Clone the tutorial repository.
@@ -66,6 +55,10 @@ cd nemo-relay-hermes-examples
 # Copy the API-key template.
 cp keys.env.example keys.env
 ```
+
+The setup script creates an isolated environment under `.tutorial-runtime/`
+and installs Hermes Agent `0.21.1` with its pinned NeMo Relay `0.8.3`
+dependency. It does not change your existing Hermes installation.
 
 Open `keys.env` and set `NVIDIA_API_KEY` to the key you generated. The repository
 ignores this file, and editing it keeps the key out of your shell history.
@@ -142,11 +135,6 @@ network, repository checkout, or NVIDIA API key.
 ## Explore Agent Traces and Run Example 2
 
 After Example 1 succeeds, continue with the [detailed tutorial](TUTORIAL.md).
-Start by examining its ATOF event stream and ATIF trajectory. In Example 2,
-Hermes uses the same setup to read a travel plan, search for a matching
-conference, verify it on the official event website, and save a report. You
-will then open the OpenTelemetry trace in Phoenix to inspect the model and tool
-calls, timing, token usage, errors, and available inputs and outputs.
 
 ## License
 
