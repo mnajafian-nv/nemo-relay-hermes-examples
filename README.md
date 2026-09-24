@@ -136,6 +136,13 @@ network, repository checkout, or NVIDIA API key.
 
 After Example 1 succeeds, continue with the [detailed tutorial](TUTORIAL.md).
 
+## NVIDIA Community Version
+
+This tutorial now lives in the
+[NVIDIA NemoClaw Community repository](https://github.com/NVIDIA/nemoclaw-community/tree/main/examples/tools/hermes-relay-tracing),
+where you can find the latest version. This repository keeps the original
+standalone version and its development history.
+
 ## License
 
 This repository is licensed under the [Apache License 2.0](LICENSE).
