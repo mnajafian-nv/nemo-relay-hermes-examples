@@ -26,6 +26,12 @@ preserving timing and parent-child relationships.
 4. Learn how to combine task verification with trace data when evaluating a
    controlled change to the prompt, tools, or agent harness.
 
+> [!NOTE]
+> This tutorial is also available as an
+> [NVIDIA Technical Blog post](https://developer.nvidia.com/blog/tracing-agent-harness-behavior-with-nvidia-nemo-relay/)
+> with a
+> [step-by-step video walkthrough](https://www.youtube.com/watch?v=WWL99l93xsE).
+
 ## Quick Start
 
 Before you begin, make sure you have:
